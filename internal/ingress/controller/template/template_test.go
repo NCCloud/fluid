@@ -39,16 +39,15 @@ import (
 var (
 	// TODO: add tests for SSLPassthrough
 	tmplFuncTestcases = map[string]struct {
-		Path                        string
-		Target                      string
-		Location                    string
-		ProxyPass                   string
-		AddBaseURL                  bool
-		BaseURLScheme               string
-		Sticky                      bool
-		XForwardedPrefix            bool
-		DynamicConfigurationEnabled bool
-		SecureBackend               bool
+		Path             string
+		Target           string
+		Location         string
+		ProxyPass        string
+		AddBaseURL       bool
+		BaseURLScheme    string
+		Sticky           bool
+		XForwardedPrefix bool
+		SecureBackend    bool
 	}{
 		"when secure backend enabled": {
 			"/",
@@ -325,43 +324,6 @@ func TestBuildLocation(t *testing.T) {
 		newLoc := buildLocation(loc)
 		if tc.Location != newLoc {
 			t.Errorf("%s: expected '%v' but returned %v", k, tc.Location, newLoc)
-		}
-	}
-}
-
-func TestBuildProxyPass(t *testing.T) {
-	defaultBackend := "upstream-name"
-	defaultHost := "example.com"
-
-	for k, tc := range tmplFuncTestcases {
-		loc := &ingress.Location{
-			Path:             tc.Path,
-			Rewrite:          rewrite.Config{Target: tc.Target, AddBaseURL: tc.AddBaseURL, BaseURLScheme: tc.BaseURLScheme},
-			Backend:          defaultBackend,
-			XForwardedPrefix: tc.XForwardedPrefix,
-		}
-
-		backend := &ingress.Backend{
-			Name:   defaultBackend,
-			Secure: tc.SecureBackend,
-		}
-
-		if tc.Sticky {
-			backend.SessionAffinity = ingress.SessionAffinityConfig{
-				AffinityType: "cookie",
-				CookieSessionAffinity: ingress.CookieSessionAffinity{
-					Locations: map[string][]string{
-						defaultHost: {tc.Path},
-					},
-				},
-			}
-		}
-
-		backends := []*ingress.Backend{backend}
-
-		pp := buildProxyPass(defaultHost, backends, loc, tc.DynamicConfigurationEnabled)
-		if !strings.EqualFold(tc.ProxyPass, pp) {
-			t.Errorf("%s: expected \n'%v'\nbut returned \n'%v'", k, tc.ProxyPass, pp)
 		}
 	}
 }

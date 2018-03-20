@@ -95,8 +95,6 @@ type Configuration struct {
 	FakeCertificateSHA  string
 
 	SyncRateLimit float32
-
-	DynamicConfigurationEnabled bool
 }
 
 // GetPublishService returns the configured service used to set ingress status
@@ -169,7 +167,7 @@ func (n *NGINXController) syncIngress(item interface{}) error {
 	if !n.isForceReload() && n.runningConfig.Equal(&pcfg) {
 		glog.V(3).Infof("skipping backend reload (no changes detected)")
 		return nil
-	} else if !n.isForceReload() && n.cfg.DynamicConfigurationEnabled && n.IsDynamicallyConfigurable(&pcfg) {
+	} else if !n.isForceReload() && n.IsDynamicallyConfigurable(&pcfg) {
 		err := n.ConfigureDynamically(&pcfg)
 		if err == nil {
 			glog.Infof("dynamic reconfiguration succeeded, skipping reload")
@@ -193,7 +191,7 @@ func (n *NGINXController) syncIngress(item interface{}) error {
 	incReloadCount()
 	setSSLExpireTime(servers)
 
-	if n.isForceReload() && n.cfg.DynamicConfigurationEnabled {
+	if n.isForceReload() {
 		go func() {
 			// it takes time for Nginx to start listening on the port
 			time.Sleep(1 * time.Second)

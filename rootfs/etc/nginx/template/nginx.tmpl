@@ -493,8 +493,10 @@ http {
 
         ssl_certificate                         /ingress-controller/ssl/default-fake-certificate.pem;
         ssl_certificate_key                     /ingress-controller/ssl/default-fake-certificate.pem;
-        
-        ssl_certificate_by_lua_file             /etc/nginx/lua/ssl.lua;
+
+        ssl_certificate_by_lua_block {
+          balancer.ssl()
+        }
 
         {{ if not (empty $cfg.ServerSnippet) }}
         # Custom code snippet configured in the configuration configmap
@@ -535,7 +537,9 @@ http {
                         add_header HTTPS on; 
                     } 
 
-                    rewrite_by_lua_file /etc/nginx/lua/rewrite.lua;
+                    rewrite_by_lua_block {
+                        balancer.rewrite()
+                    }
 
                     proxy_pass http://upstream_balancer;
                 }
@@ -569,7 +573,11 @@ http {
         }
 
         location /configuration {
+            client_max_body_size 512m;
+            client_body_buffer_size 512m;
+            access_log off;
             allow 127.0.0.1;
+            {{ if $IsIPV6Enabled }}allow ::1;{{ end }}
             deny all;
             content_by_lua_block {
               configuration.call()

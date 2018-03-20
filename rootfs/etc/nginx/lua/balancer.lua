@@ -6,9 +6,9 @@ local lrucache = require("resty.lrucache")
 local resty_lock = require("resty.lock")
 
 -- measured in seconds
--- for an Nginx worker to pick up the new list of upstream peers
--- it will take <the delay until controller POSTed the backend object to the Nginx endpoint> + BACKENDS_SYNC_INTERVAL
-local BACKENDS_SYNC_INTERVAL = 1
+-- for an Nginx worker to pick up the new list of configs
+-- it will take <the delay until controller POSTed the backend object to the Nginx endpoint> + CONFIG_SYNC_INTERVAL
+local CONFIG_SYNC_INTERVAL = 1
 
 local ROUND_ROBIN_LOCK_KEY = "round_robin"
 
@@ -18,9 +18,24 @@ local _M = {}
 
 local round_robin_lock = resty_lock:new("locks", {timeout = 0, exptime = 0.1})
 
+local servers, err = lrucache.new(1024)
+if not servers then
+  return error("failed to create the cache for servers: " .. (err or "unknown"))
+end
+
 local backends, err = lrucache.new(1024)
 if not backends then
   return error("failed to create the cache for backends: " .. (err or "unknown"))
+end
+
+local function rewrite()
+  ngx.status = 200
+  ngx.exit(ngx.status)
+end
+
+local function ssl()
+  ngx.status = 200
+  ngx.exit(ngx.status)
 end
 
 local function balance()
@@ -49,27 +64,48 @@ local function balance()
   return endpoint.address, endpoint.port
 end
 
+local function sync_server(server)
+  servers:set(server.hostname, server)
+
+  ngx.log(ngx.INFO, "server syncronization completed for: " .. server.hostname)
+end
+
 local function sync_backend(backend)
   backends:set(backend.name, backend)
 
   -- also reset the respective balancer state since backend has changed
   round_robin_state:delete(backend.name)
 
-  ngx.log(ngx.INFO, "syncronization completed for: " .. backend.name)
+  ngx.log(ngx.INFO, "backend syncronization completed for: " .. backend.name)
 end
 
-local function sync_backends()
-  local backends_data = configuration.get_backends_data()
-  if not backends_data then
+local function sync_config()
+  local config_data = configuration.get_config_data()
+  if not config_data then
     return
   end
 
-  local ok, new_backends = pcall(json.decode, backends_data)
+  local ok, new_config = pcall(json.decode, config_data)
   if not ok then
-    ngx.log(ngx.ERR,  "could not parse backends data: " .. tostring(new_backends))
+    ngx.log(ngx.ERR,  "could not parse config data: " .. tostring(new_config))
     return
   end
 
+  local new_servers = new_config.servers
+  for _, new_server in pairs(new_servers) do
+    local server = servers:get(new_server.name)
+    local server_changed = true
+
+    if server then
+      server_changed = not util.deep_compare(server, new_server)
+    end
+
+    if server_changed then
+      sync_server(new_server)
+    end
+  end
+
+  local new_backends = new_config.backends
   for _, new_backend in pairs(new_backends) do
     local backend = backends:get(new_backend.name)
     local backend_changed = true
@@ -85,9 +121,9 @@ local function sync_backends()
 end
 
 function _M.init_worker()
-  _, err = ngx.timer.every(BACKENDS_SYNC_INTERVAL, sync_backends)
+  _, err = ngx.timer.every(CONFIG_SYNC_INTERVAL, sync_config)
   if err then
-    ngx.log(ngx.ERR, "error when setting up timer.every for sync_backends: " .. tostring(err))
+    ngx.log(ngx.ERR, "error when setting up timer.every for sync_config: " .. tostring(err))
   end
 end
 
