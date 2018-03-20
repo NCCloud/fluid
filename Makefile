@@ -141,7 +141,7 @@ code-generator:
 build: clean
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -a -installsuffix cgo \
 		-ldflags "-s -w -X ${PKG}/version.RELEASE=${TAG} -X ${PKG}/version.COMMIT=${COMMIT} -X ${PKG}/version.REPO=${REPO_INFO}" \
-		-o ${TEMP_DIR}/rootfs/fluid-ingress-controller ${PKG}/cmd/nginx
+		-o ${TEMP_DIR}/rootfs/nginx-ingress-controller ${PKG}/cmd/nginx
 
 .PHONY: verify-all
 verify-all:

@@ -30,4 +30,4 @@ COPY . /
 
 ENTRYPOINT ["/usr/bin/dumb-init"]
 
-CMD ["/fluid-ingress-controller"]
+CMD ["/nginx-ingress-controller"]
