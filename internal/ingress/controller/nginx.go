@@ -26,6 +26,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -33,6 +34,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	version "github.com/hashicorp/go-version"
 
 	proxyproto "github.com/armon/go-proxyproto"
 	"github.com/eapache/channels"
@@ -45,6 +47,8 @@ import (
 	"k8s.io/kubernetes/pkg/util/filesystem"
 
 	"path/filepath"
+
+	"github.com/liip/sheriff"
 
 	"github.com/NCCloud/fluid/internal/file"
 	"github.com/NCCloud/fluid/internal/ingress"
@@ -608,24 +612,23 @@ func (n *NGINXController) OnUpdate(ingressCfg ingress.Configuration) error {
 	cfg.SSLDHParam = sslDHParam
 
 	tc := ngx_config.TemplateConfig{
-		ProxySetHeaders:             setHeaders,
-		AddHeaders:                  addHeaders,
-		MaxOpenFiles:                maxOpenFiles,
-		BacklogSize:                 sysctlSomaxconn(),
-		Backends:                    ingressCfg.Backends,
-		PassthroughBackends:         ingressCfg.PassthroughBackends,
-		Servers:                     ingressCfg.Servers,
-		TCPBackends:                 ingressCfg.TCPEndpoints,
-		UDPBackends:                 ingressCfg.UDPEndpoints,
-		HealthzURI:                  ngxHealthPath,
-		CustomErrors:                len(cfg.CustomHTTPErrors) > 0,
-		Cfg:                         cfg,
-		IsIPV6Enabled:               n.isIPV6Enabled && !cfg.DisableIpv6,
-		RedirectServers:             redirectServers,
-		IsSSLPassthroughEnabled:     n.cfg.EnableSSLPassthrough,
-		ListenPorts:                 n.cfg.ListenPorts,
-		PublishService:              n.GetPublishService(),
-		DynamicConfigurationEnabled: n.cfg.DynamicConfigurationEnabled,
+		ProxySetHeaders:         setHeaders,
+		AddHeaders:              addHeaders,
+		MaxOpenFiles:            maxOpenFiles,
+		BacklogSize:             sysctlSomaxconn(),
+		Backends:                ingressCfg.Backends,
+		PassthroughBackends:     ingressCfg.PassthroughBackends,
+		Servers:                 ingressCfg.Servers,
+		TCPBackends:             ingressCfg.TCPEndpoints,
+		UDPBackends:             ingressCfg.UDPEndpoints,
+		HealthzURI:              ngxHealthPath,
+		CustomErrors:            len(cfg.CustomHTTPErrors) > 0,
+		Cfg:                     cfg,
+		IsIPV6Enabled:           n.isIPV6Enabled && !cfg.DisableIpv6,
+		RedirectServers:         redirectServers,
+		IsSSLPassthroughEnabled: n.cfg.EnableSSLPassthrough,
+		ListenPorts:             n.cfg.ListenPorts,
+		PublishService:          n.GetPublishService(),
 	}
 
 	content, err := n.t.Write(tc)
@@ -757,20 +760,60 @@ func (n *NGINXController) IsDynamicallyConfigurable(pcfg *ingress.Configuration)
 	copyOfRunningConfig.Backends = []*ingress.Backend{}
 	copyOfPcfg.Backends = []*ingress.Backend{}
 
+	copyOfRunningConfig.Servers = []*ingress.Server{}
+	copyOfPcfg.Servers = []*ingress.Server{}
+
 	return copyOfRunningConfig.Equal(&copyOfPcfg)
 }
 
-// ConfigureDynamically JSON encodes new Backends and POSTs it to an internal HTTP endpoint
+// ConfigureDynamically JSON encodes new configuration and POSTs it to an internal HTTP endpoint
 // that is handled by Lua
 func (n *NGINXController) ConfigureDynamically(pcfg *ingress.Configuration) error {
-	buf, err := json.Marshal(pcfg.Backends)
+	for _, server := range pcfg.Servers {
+		if server.SSLCertificate != "" {
+			b, err := ioutil.ReadFile(server.SSLCertificate)
+			if err == nil {
+				re := regexp.MustCompile(`\n`)
+				bString := string(b)
+				bString = re.ReplaceAllString(bString, "\\n")
+				server.SSLCertificateReal = bString
+			} else {
+				glog.Warningf("unexpected error reading certificate: %v (%v)", server.SSLCertificate, err)
+			}
+		}
+		if server.SSLFullChainCertificate != "" {
+			b, err := ioutil.ReadFile(server.SSLFullChainCertificate)
+			if err == nil {
+				re := regexp.MustCompile(`\n`)
+				bString := string(b)
+				bString = re.ReplaceAllString(bString, "\\n")
+				server.SSLFullChainCertificateReal = bString
+			} else {
+				glog.Warningf("unexpected error reading certificate: %v (%v)", server.SSLFullChainCertificate, err)
+			}
+		}
+	}
+
+	v2, err := version.NewVersion("1.0.0")
+	if err != nil {
+		return err
+	}
+	o := &sheriff.Options{
+		Groups:     []string{"dynamic"},
+		ApiVersion: v2,
+	}
+	data, err := sheriff.Marshal(o, pcfg)
+	if err != nil {
+		return err
+	}
+	buf, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
-	glog.V(2).Infof("posting backends configuration: %s", buf)
+	glog.V(2).Infof("posting configuration: %s", buf)
 
-	url := fmt.Sprintf("http://localhost:%d/configuration/backends", n.cfg.ListenPorts.Status)
+	url := fmt.Sprintf("http://localhost:%d/configuration", n.cfg.ListenPorts.Status)
 	resp, err := http.Post(url, "application/json", bytes.NewReader(buf))
 	if err != nil {
 		return err

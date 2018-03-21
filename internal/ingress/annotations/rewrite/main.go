@@ -33,9 +33,9 @@ type Config struct {
 	// BaseURLScheme override for the scheme passed to the base tag
 	BaseURLScheme string `json:"baseUrlScheme"`
 	// SSLRedirect indicates if the location section is accessible SSL only
-	SSLRedirect bool `json:"sslRedirect"`
+	SSLRedirect bool `json:"sslRedirect" groups:"dynamic"`
 	// ForceSSLRedirect indicates if the location section is accessible SSL only
-	ForceSSLRedirect bool `json:"forceSSLRedirect"`
+	ForceSSLRedirect bool `json:"forceSSLRedirect" groups:"dynamic"`
 	// AppRoot defines the Application Root that the Controller must redirect if it's in '/' context
 	AppRoot string `json:"appRoot"`
 }

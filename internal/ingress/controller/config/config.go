@@ -614,24 +614,23 @@ func (cfg Configuration) BuildLogFormatUpstream() string {
 
 // TemplateConfig contains the nginx configuration to render the file nginx.conf
 type TemplateConfig struct {
-	ProxySetHeaders             map[string]string
-	AddHeaders                  map[string]string
-	MaxOpenFiles                int
-	BacklogSize                 int
-	Backends                    []*ingress.Backend
-	PassthroughBackends         []*ingress.SSLPassthroughBackend
-	Servers                     []*ingress.Server
-	TCPBackends                 []ingress.L4Service
-	UDPBackends                 []ingress.L4Service
-	HealthzURI                  string
-	CustomErrors                bool
-	Cfg                         Configuration
-	IsIPV6Enabled               bool
-	IsSSLPassthroughEnabled     bool
-	RedirectServers             map[string]string
-	ListenPorts                 *ListenPorts
-	PublishService              *apiv1.Service
-	DynamicConfigurationEnabled bool
+	ProxySetHeaders         map[string]string
+	AddHeaders              map[string]string
+	MaxOpenFiles            int
+	BacklogSize             int
+	Backends                []*ingress.Backend
+	PassthroughBackends     []*ingress.SSLPassthroughBackend
+	Servers                 []*ingress.Server
+	TCPBackends             []ingress.L4Service
+	UDPBackends             []ingress.L4Service
+	HealthzURI              string
+	CustomErrors            bool
+	Cfg                     Configuration
+	IsIPV6Enabled           bool
+	IsSSLPassthroughEnabled bool
+	RedirectServers         map[string]string
+	ListenPorts             *ListenPorts
+	PublishService          *apiv1.Service
 }
 
 // ListenPorts describe the ports required to run the
