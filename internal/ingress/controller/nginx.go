@@ -26,7 +26,6 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -773,9 +772,7 @@ func (n *NGINXController) ConfigureDynamically(pcfg *ingress.Configuration) erro
 		if server.SSLCertificate != "" {
 			b, err := ioutil.ReadFile(server.SSLCertificate)
 			if err == nil {
-				re := regexp.MustCompile(`\n`)
 				bString := string(b)
-				bString = re.ReplaceAllString(bString, "\\n")
 				server.SSLCertificateReal = bString
 			} else {
 				glog.Warningf("unexpected error reading certificate: %v (%v)", server.SSLCertificate, err)
@@ -784,9 +781,7 @@ func (n *NGINXController) ConfigureDynamically(pcfg *ingress.Configuration) erro
 		if server.SSLFullChainCertificate != "" {
 			b, err := ioutil.ReadFile(server.SSLFullChainCertificate)
 			if err == nil {
-				re := regexp.MustCompile(`\n`)
 				bString := string(b)
-				bString = re.ReplaceAllString(bString, "\\n")
 				server.SSLFullChainCertificateReal = bString
 			} else {
 				glog.Warningf("unexpected error reading certificate: %v (%v)", server.SSLFullChainCertificate, err)
