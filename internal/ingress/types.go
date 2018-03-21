@@ -83,13 +83,13 @@ type Backend struct {
 	// SSLPassthrough indicates that Ingress controller will delegate TLS termination to the endpoints.
 	SSLPassthrough bool `json:"sslPassthrough"`
 	// Endpoints contains the list of endpoints currently running
-	Endpoints []Endpoint `json:"endpoints,omitempty"`
+	Endpoints []Endpoint `json:"endpoints,omitempty" groups:"dynamic"`
 	// StickySessionAffinitySession contains the StickyConfig object with stickness configuration
 	SessionAffinity SessionAffinityConfig `json:"sessionAffinityConfig"`
 	// Consistent hashing by NGINX variable
 	UpstreamHashBy string `json:"upstream-hash-by,omitempty"`
 	// LB algorithm configuration per ingress
-	LoadBalancing string `json:"load-balance,omitempty"`
+	LoadBalancing string `json:"load-balance,omitempty" groups:"dynamic"`
 }
 
 // SessionAffinityConfig describes different affinity configurations for new sessions.
@@ -116,17 +116,17 @@ type CookieSessionAffinity struct {
 // +k8s:deepcopy-gen=true
 type Endpoint struct {
 	// Address IP address of the endpoint
-	Address string `json:"address"`
+	Address string `json:"address" groups:"dynamic"`
 	// Port number of the TCP port
-	Port string `json:"port"`
+	Port string `json:"port" groups:"dynamic"`
 	// MaxFails returns the number of unsuccessful attempts to communicate
 	// allowed before this should be considered down.
 	// Setting 0 indicates that the check is performed by a Kubernetes probe
-	MaxFails int `json:"maxFails"`
+	MaxFails int `json:"maxFails" groups:"dynamic"`
 	// FailTimeout returns the time in seconds during which the specified number
 	// of unsuccessful attempts to communicate with the server should happen
 	// to consider the endpoint unavailable
-	FailTimeout int `json:"failTimeout"`
+	FailTimeout int `json:"failTimeout" groups:"dynamic"`
 	// Target returns a reference to the object providing the endpoint
 	Target *apiv1.ObjectReference `json:"target,omitempty"`
 }
@@ -200,7 +200,7 @@ type Location struct {
 	// Ingress returns the ingress from which this location was generated
 	Ingress *extensions.Ingress `json:"ingress"`
 	// Backend describes the name of the backend to use.
-	Backend string `json:"backend"`
+	Backend string `json:"backend" groups:"dynamic"`
 	// Service describes the referenced services from the ingress
 	Service *apiv1.Service `json:"service,omitempty"`
 	// Port describes to which port from the service
