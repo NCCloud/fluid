@@ -39,7 +39,7 @@ http {
     lua_package_cpath "/usr/local/lib/lua/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;";
     lua_package_path "/etc/nginx/lua/?.lua;/etc/nginx/lua/vendor/?.lua;/usr/local/lib/lua/?.lua;;";
 
-    lua_shared_dict configuration_data 5M;
+    lua_shared_dict configuration_data 512M;
     lua_shared_dict round_robin_state 1M;
     lua_shared_dict locks 512k;
 
@@ -163,11 +163,8 @@ http {
     {{ range $k, $v := $addHeaders }}
     add_header {{ $k }}            "{{ $v }}";
     {{ end }}
-
-    server_tokens {{ if $cfg.ShowServerTokens }}on{{ else }}off{{ end }};
-    {{ if not $cfg.ShowServerTokens }}
-    more_set_headers "Server: ";
-    {{ end }}
+    
+    more_set_headers "Server: Fluid";
 
     # disable warnings
     uninitialized_variable_warn off;
@@ -383,7 +380,7 @@ http {
         server 0.0.0.1; # placeholder
 
         balancer_by_lua_block {
-          balancer.call()
+          balancer.balance()
         }
 
         keepalive 1000;

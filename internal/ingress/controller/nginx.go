@@ -34,6 +34,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	version "github.com/hashicorp/go-version"
 
 	proxyproto "github.com/armon/go-proxyproto"
 	"github.com/eapache/channels"
@@ -46,6 +47,8 @@ import (
 	"k8s.io/kubernetes/pkg/util/filesystem"
 
 	"path/filepath"
+
+	"github.com/liip/sheriff"
 
 	"github.com/NCCloud/fluid/internal/file"
 	"github.com/NCCloud/fluid/internal/ingress"
@@ -791,7 +794,19 @@ func (n *NGINXController) ConfigureDynamically(pcfg *ingress.Configuration) erro
 		}
 	}
 
-	buf, err := json.Marshal(pcfg)
+	v2, err := version.NewVersion("1.0.0")
+	if err != nil {
+		return err
+	}
+	o := &sheriff.Options{
+		Groups:     []string{"dynamic"},
+		ApiVersion: v2,
+	}
+	data, err := sheriff.Marshal(o, pcfg)
+	if err != nil {
+		return err
+	}
+	buf, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}

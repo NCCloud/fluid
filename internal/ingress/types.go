@@ -50,9 +50,9 @@ var (
 type Configuration struct {
 	// Backends are a list of backends used by all the Ingress rules in the
 	// ingress controller. This list includes the default backend
-	Backends []*Backend `json:"backends,omitempty"`
+	Backends []*Backend `json:"backends,omitempty" groups:"dynamic"`
 	// Servers
-	Servers []*Server `json:"servers,omitempty"`
+	Servers []*Server `json:"servers,omitempty" groups:"dynamic"`
 	// TCPEndpoints contain endpoints for tcp streams handled by this backend
 	// +optional
 	TCPEndpoints []L4Service `json:"tcpEndpoints,omitempty"`
@@ -69,7 +69,7 @@ type Configuration struct {
 // +k8s:deepcopy-gen=true
 type Backend struct {
 	// Name represents an unique apiv1.Service name formatted as <namespace>-<name>-<port>
-	Name    string             `json:"name"`
+	Name    string             `json:"name" groups:"dynamic"`
 	Service *apiv1.Service     `json:"service,omitempty"`
 	Port    intstr.IntOrString `json:"port"`
 	// This indicates if the communication protocol between the backend and the endpoint is HTTP or HTTPS
@@ -134,20 +134,20 @@ type Endpoint struct {
 // Server describes a website
 type Server struct {
 	// Hostname returns the FQDN of the server
-	Hostname string `json:"hostname"`
+	Hostname string `json:"hostname" groups:"dynamic"`
 	// SSLPassthrough indicates if the TLS termination is realized in
 	// the server or in the remote endpoint
 	SSLPassthrough bool `json:"sslPassthrough"`
 	// SSLCertificate path to the SSL certificate on disk
 	SSLCertificate string `json:"sslCertificate"`
 	// SSLCertificateReal real value
-	SSLCertificateReal string `json:"sslCertificateReal"`
+	SSLCertificateReal string `json:"sslCertificateReal" groups:"dynamic"`
 	// SSLFullChainCertificate path to the SSL certificate on disk
 	// This certificate contains the full chain (ca + intermediates + cert)
 	SSLFullChainCertificate string `json:"sslFullChainCertificate"`
 	// SSLFullChainCertificateReal real value
 	// This certificate contains the full chain (ca + intermediates + cert)
-	SSLFullChainCertificateReal string `json:"sslFullChainCertificateReal"`
+	SSLFullChainCertificateReal string `json:"sslFullChainCertificateReal" groups:"dynamic"`
 	// SSLExpireTime has the expire date of this certificate
 	SSLExpireTime time.Time `json:"sslExpireTime"`
 	// SSLPemChecksum returns the checksum of the certificate file on disk.
@@ -156,7 +156,7 @@ type Server struct {
 	// system notifications
 	SSLPemChecksum string `json:"sslPemChecksum"`
 	// Locations list of URIs configured in the server.
-	Locations []*Location `json:"locations,omitempty"`
+	Locations []*Location `json:"locations,omitempty" groups:"dynamic"`
 	// Alias return the alias of the server name
 	Alias string `json:"alias,omitempty"`
 	// RedirectFromToWWW returns if a redirect to/from prefix www is required
@@ -192,7 +192,7 @@ type Location struct {
 	// part of a URL as defined by RFC 3986. Paths must begin with
 	// a '/'. If unspecified, the path defaults to a catch all sending
 	// traffic to the backend.
-	Path string `json:"path"`
+	Path string `json:"path" groups:"dynamic"`
 	// IsDefBackend indicates if service specified in the Ingress
 	// contains active endpoints or not. Returning true means the location
 	// uses the default backend.
@@ -233,7 +233,7 @@ type Location struct {
 	Redirect redirect.Config `json:"redirect,omitempty"`
 	// Rewrite describes the redirection this location.
 	// +optional
-	Rewrite rewrite.Config `json:"rewrite,omitempty"`
+	Rewrite rewrite.Config `json:"rewrite,omitempty" groups:"dynamic"`
 	// Whitelist indicates only connections from certain client
 	// addresses or networks are allowed.
 	// +optional
