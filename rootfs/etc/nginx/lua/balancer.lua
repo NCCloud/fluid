@@ -19,12 +19,17 @@ local _M = {}
 
 local round_robin_lock = resty_lock:new("locks", {timeout = 0, exptime = 0.1})
 
-local servers, err = lrucache.new(1024)
+local config_check_code_cache, err = lrucache.new(1)
+if not config_check_code_cache then
+  return error("failed to create the cache for config_check_code: " .. (err or "unknown"))
+end
+
+local servers, err = lrucache.new(10240)
 if not servers then
   return error("failed to create the cache for servers: " .. (err or "unknown"))
 end
 
-local backends, err = lrucache.new(1024)
+local backends, err = lrucache.new(10240)
 if not backends then
   return error("failed to create the cache for backends: " .. (err or "unknown"))
 end
@@ -45,43 +50,47 @@ local function sync_backend(backend)
 end
 
 local function sync_config()
-  local config_data = configuration.get_config_data()
-  if not config_data then
-    return
-  end
-
-  local ok, new_config = pcall(json.decode, config_data)
-  if not ok then
-    ngx.log(ngx.ERR,  "could not parse config data: " .. tostring(new_config))
-    return
-  end
-
-  local new_servers = new_config.servers
-  for _, new_server in pairs(new_servers) do
-    local server = servers:get(new_server.hostname)
-    local server_changed = true
-
-    if server then
-      server_changed = not util.deep_compare(server, new_server)
+  local config_check_code = configuration.get_config_check_code()
+  if config_check_code_cache ~= config_check_code then
+    local config_data = configuration.get_config_data()
+    if not config_data then
+      return
     end
 
-    if server_changed then
-      sync_server(new_server)
-    end
-  end
-
-  local new_backends = new_config.backends
-  for _, new_backend in pairs(new_backends) do
-    local backend = backends:get(new_backend.name)
-    local backend_changed = true
-
-    if backend then
-      backend_changed = not util.deep_compare(backend, new_backend)
+    local ok, new_config = pcall(json.decode, config_data)
+    if not ok then
+      ngx.log(ngx.ERR,  "could not parse config data: " .. tostring(new_config))
+      return
     end
 
-    if backend_changed then
-      sync_backend(new_backend)
+    local new_servers = new_config.servers
+    for _, new_server in pairs(new_servers) do
+      local server = servers:get(new_server.hostname)
+      local server_changed = true
+
+      if server then
+        server_changed = not util.deep_compare(server, new_server)
+      end
+
+      if server_changed then
+        sync_server(new_server)
+      end
     end
+
+    local new_backends = new_config.backends
+    for _, new_backend in pairs(new_backends) do
+      local backend = backends:get(new_backend.name)
+      local backend_changed = true
+
+      if backend then
+        backend_changed = not util.deep_compare(backend, new_backend)
+      end
+
+      if backend_changed then
+        sync_backend(new_backend)
+      end
+    end
+    config_check_code_cache = config_check_code
   end
 end
 

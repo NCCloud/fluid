@@ -168,6 +168,7 @@ func (n *NGINXController) syncIngress(item interface{}) error {
 		glog.V(3).Infof("skipping backend reload (no changes detected)")
 		return nil
 	} else if !n.isForceReload() && n.IsDynamicallyConfigurable(&pcfg) {
+		glog.Warningf("BACKEND RECONFIGURATION: Dynamic Reload")
 		err := n.ConfigureDynamically(&pcfg)
 		if err == nil {
 			glog.Infof("dynamic reconfiguration succeeded, skipping reload")
@@ -178,7 +179,7 @@ func (n *NGINXController) syncIngress(item interface{}) error {
 		glog.Warningf("falling back to reload, could not dynamically reconfigure: %v", err)
 	}
 
-	glog.Infof("backend reload required")
+	glog.Warningf("BACKEND RECONFIGURATION: File config Reload")
 
 	err := n.OnUpdate(pcfg)
 	if err != nil {
