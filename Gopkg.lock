@@ -216,6 +216,12 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/hashicorp/go-version"
+  packages = ["."]
+  revision = "23480c0665776210b5fbbac6eaaee40e3e6a96b7"
+
+[[projects]]
+  branch = "master"
   name = "github.com/hashicorp/golang-lru"
   packages = [
     ".",
@@ -261,6 +267,12 @@
     "pretty"
   ]
   revision = "d65d576e9348f5982d7f6d83682b694e731a45c6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/liip/sheriff"
+  packages = ["."]
+  revision = "05500a826e6f0c55387db004e5fe8b16fbcd9af1"
 
 [[projects]]
   branch = "master"
@@ -952,6 +964,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "085f93508ceea89a502baf7d00c4649c9fdfde67442b7588d9b39a0520abe147"
+  inputs-digest = "d02622e800c52e208a7764d3c13b44cd937a8de1d2f2bbca36b94342001f90f5"
   solver-name = "gps-cdcl"
   solver-version = 1

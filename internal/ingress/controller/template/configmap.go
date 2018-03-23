@@ -26,9 +26,9 @@ import (
 
 	"github.com/mitchellh/mapstructure"
 
-	"k8s.io/apimachinery/pkg/util/sets"
 	"github.com/NCCloud/fluid/internal/ingress/controller/config"
 	ing_net "github.com/NCCloud/fluid/internal/net"
+	"k8s.io/apimachinery/pkg/util/sets"
 )
 
 const (

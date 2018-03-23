@@ -26,11 +26,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
+	"github.com/NCCloud/fluid/test/e2e/framework"
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/kubernetes"
-	"github.com/NCCloud/fluid/test/e2e/framework"
 )
 
 var _ = framework.IngressNginxDescribe("Proxy Protocol", func() {

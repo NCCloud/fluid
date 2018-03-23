@@ -46,6 +46,10 @@
 
 [[constraint]]
   branch = "master"
+  name = "github.com/liip/sheriff"
+
+[[constraint]]
+  branch = "master"
   name = "github.com/mitchellh/go-ps"
 
 [[constraint]]

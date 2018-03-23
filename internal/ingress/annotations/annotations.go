@@ -17,9 +17,9 @@ limitations under the License.
 package annotations
 
 import (
+	"github.com/NCCloud/fluid/internal/ingress/annotations/sslcipher"
 	"github.com/golang/glog"
 	"github.com/imdario/mergo"
-	"github.com/NCCloud/fluid/internal/ingress/annotations/sslcipher"
 
 	extensions "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

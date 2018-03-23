@@ -24,14 +24,14 @@ if not config_check_code_cache then
   return error("failed to create the cache for config_check_code: " .. (err or "unknown"))
 end
 
-local servers, err = lrucache.new(10240)
+local servers, servers_err = lrucache.new(10240)
 if not servers then
-  return error("failed to create the cache for servers: " .. (err or "unknown"))
+  return error("failed to create the cache for servers: " .. (servers_err or "unknown"))
 end
 
-local backends, err = lrucache.new(10240)
+local backends, backends_err = lrucache.new(10240)
 if not backends then
-  return error("failed to create the cache for backends: " .. (err or "unknown"))
+  return error("failed to create the cache for backends: " .. (backends_err or "unknown"))
 end
 
 local function sync_server(server)
@@ -148,7 +148,8 @@ function _M.rewrite()
     ngx.log(ngx.INFO, "SSL Redirect configs: forceSSLRedirect=" ..  tostring(ngx.ctx.location.rewrite.forceSSLRedirect))
     ngx.log(ngx.INFO, "SSL Redirect configs: sslCertificateReal=" ..  tostring(ngx.ctx.server.sslCertificateReal))
     ngx.log(ngx.INFO, "SSL Redirect configs: sslRedirect=" ..  tostring(ngx.ctx.location.rewrite.sslRedirect))
-    if ngx.ctx.location.rewrite.forceSSLRedirect or (ngx.ctx.server.sslCertificateReal ~= "" and ngx.ctx.location.rewrite.sslRedirect) then
+    if ngx.ctx.location.rewrite.forceSSLRedirect or
+    (ngx.ctx.server.sslCertificateReal ~= "" and ngx.ctx.location.rewrite.sslRedirect) then
       if redirect_to_https == "1" then
         ngx.log(ngx.INFO, "SSL Redirect(" .. ngx.var.http_host .. "): " .. ngx.var.request_uri)
         return ngx.redirect("https://" .. ngx.var.http_host .. ngx.var.request_uri, 301)
@@ -171,9 +172,9 @@ function _M.ssl()
     end
 
     if server.sslCertificateReal ~= "" then
-      local ok, err = ssl.clear_certs()
+      local ok, server_err = ssl.clear_certs()
       if not ok then
-        ngx.log(ngx.ERR, "SSL ["..http_host.."]: failed to clear fallback certificates")
+        ngx.log(ngx.ERR, "SSL ["..http_host.."]: failed to clear fallback certificates: ", server_err)
         return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
       end
       local cert_key_data = server.sslCertificateReal
@@ -181,24 +182,24 @@ function _M.ssl()
         ngx.log(ngx.ERR, "SSL certificate not found in memory")
         return ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
       end
-      local der_cert_chain, err = ssl.cert_pem_to_der(cert_key_data)
+      local der_cert_chain, der_cert_chain_err = ssl.cert_pem_to_der(cert_key_data)
       if not der_cert_chain then
-        ngx.log(ngx.ERR, "failed to convert certificate chain ", "from PEM to DER: ", err)
+        ngx.log(ngx.ERR, "failed to convert certificate chain ", "from PEM to DER: ", der_cert_chain_err)
         return ngx.exit(ngx.ERROR)
       end
-      local ok, err = ssl.set_der_cert(der_cert_chain)
-      if not ok then
-        ngx.log(ngx.ERR, "failed to set DER cert: ", err)
+      local set_der_cert_ok, set_der_cert_err = ssl.set_der_cert(der_cert_chain)
+      if not set_der_cert_ok then
+        ngx.log(ngx.ERR, "failed to set DER cert: ", set_der_cert_err)
         return ngx.exit(ngx.ERROR)
       end
-      local der_pkey, err = ssl.priv_key_pem_to_der(cert_key_data)
+      local der_pkey, priv_key_pem_to_der_err = ssl.priv_key_pem_to_der(cert_key_data)
       if not der_pkey then
-        ngx.log(ngx.ERR, "failed to convert private key ", "from PEM to DER: ", err)
+        ngx.log(ngx.ERR, "failed to convert private key ", "from PEM to DER: ", priv_key_pem_to_der_err)
         return ngx.exit(ngx.ERROR)
       end
-      local ok, err = ssl.set_der_priv_key(der_pkey)
-      if not ok then
-        ngx.log(ngx.ERR, "failed to set DER private key: ", err)
+      local set_der_priv_key_ok, set_der_priv_key_err = ssl.set_der_priv_key(der_pkey)
+      if not set_der_priv_key_ok then
+        ngx.log(ngx.ERR, "failed to set DER private key: ", set_der_priv_key_err)
         return ngx.exit(ngx.ERROR)
       end
     end
@@ -207,7 +208,6 @@ end
 
 function _M.balance()
   load_ctx()
-  
   ngx_balancer.set_more_tries(1)
 
   local backend_name = ngx.ctx.location.backend

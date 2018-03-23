@@ -14,8 +14,8 @@ local function get_uuid_code()
   local random = math.random
   local template ='xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 
-  return string.gsub(template, '[xy]', function (c)
-    local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+  return string.gsub(template, '[xy]', function (fc)
+    local v = (fc == 'x') and random(0, 0xf) or random(8, 0xb)
       return string.format('%x', v)
   end)
 end
@@ -55,13 +55,13 @@ function _M.call()
     ngx.status = ngx.HTTP_BAD_REQUEST
     return
   end
-  
+
   local config_check_code = get_uuid_code()
   ngx.log(ngx.INFO, "Configuration Check Code: " .. tostring(config_check_code))
 
-  local success, err = configuration_data:set("config_check_code", config_check_code)
-  if not success then
-    ngx.log(ngx.ERR, "error while saving configuration check code: " .. tostring(err))
+  local check_success, check_err = configuration_data:set("config_check_code", config_check_code)
+  if not check_success then
+    ngx.log(ngx.ERR, "error while saving configuration check code: " .. tostring(check_err))
     ngx.status = ngx.HTTP_BAD_REQUEST
     return
   end
