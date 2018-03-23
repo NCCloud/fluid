@@ -19,11 +19,11 @@ package snippet
 import (
 	"testing"
 
+	"github.com/NCCloud/fluid/internal/ingress/annotations/parser"
+	"github.com/NCCloud/fluid/internal/ingress/resolver"
 	api "k8s.io/api/core/v1"
 	extensions "k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"github.com/NCCloud/fluid/internal/ingress/annotations/parser"
-	"github.com/NCCloud/fluid/internal/ingress/resolver"
 )
 
 func TestParse(t *testing.T) {

@@ -49,29 +49,7 @@ var (
 		XForwardedPrefix bool
 		SecureBackend    bool
 	}{
-		"when secure backend enabled": {
-			"/",
-			"/",
-			"/",
-			"proxy_pass https://upstream-name;",
-			false,
-			"",
-			false,
-			false,
-			false,
-			true},
-		"when secure backend and stickeness enabled": {
-			"/",
-			"/",
-			"/",
-			"proxy_pass https://sticky-upstream-name;",
-			false,
-			"",
-			true,
-			false,
-			false,
-			true},
-		"when secure backend and dynamic config enabled": {
+		"when secure backend": {
 			"/",
 			"/",
 			"/",
@@ -80,9 +58,8 @@ var (
 			"",
 			false,
 			false,
-			true,
 			true},
-		"when secure backend, stickeness and dynamic config enabled": {
+		"when secure backend, stickeness": {
 			"/",
 			"/",
 			"/",
@@ -91,9 +68,8 @@ var (
 			"",
 			true,
 			false,
-			true,
 			true},
-		"invalid redirect / to / with dynamic config enabled": {
+		"invalid redirect / to /": {
 			"/",
 			"/",
 			"/",
@@ -102,196 +78,7 @@ var (
 			"",
 			false,
 			false,
-			true,
-			false},
-		"invalid redirect / to /": {
-			"/",
-			"/",
-			"/",
-			"proxy_pass http://upstream-name;",
-			false,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect / to /jenkins": {
-			"/",
-			"/jenkins",
-			"~* /",
-			`
-	    rewrite /(.*) /jenkins/$1 break;
-	    proxy_pass http://upstream-name;
-	    `,
-			false,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /something to /": {
-			"/something",
-			"/",
-			`~* ^/something\/?(?<baseuri>.*)`,
-			`
-	    rewrite /something/(.*) /$1 break;
-	    rewrite /something / break;
-	    proxy_pass http://upstream-name;
-	    `,
-			false,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /end-with-slash/ to /not-root": {
-			"/end-with-slash/",
-			"/not-root",
-			"~* ^/end-with-slash/(?<baseuri>.*)",
-			`
-	    rewrite /end-with-slash/(.*) /not-root/$1 break;
-	    proxy_pass http://upstream-name;
-	    `,
-			false,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /something-complex to /not-root": {
-			"/something-complex",
-			"/not-root",
-			`~* ^/something-complex\/?(?<baseuri>.*)`,
-			`
-	    rewrite /something-complex/(.*) /not-root/$1 break;
-	    proxy_pass http://upstream-name;
-	    `,
-			false,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect / to /jenkins and rewrite": {
-			"/",
-			"/jenkins",
-			"~* /",
-			`
-	    rewrite /(.*) /jenkins/$1 break;
-	    proxy_pass http://upstream-name;
-	    subs_filter '(<(?:H|h)(?:E|e)(?:A|a)(?:D|d)(?:[^">]|"[^"]*")*>)' '$1<base href="$scheme://$http_host/$baseuri">' ro;
-	    `,
-			true,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /something to / and rewrite": {
-			"/something",
-			"/",
-			`~* ^/something\/?(?<baseuri>.*)`,
-			`
-	    rewrite /something/(.*) /$1 break;
-	    rewrite /something / break;
-	    proxy_pass http://upstream-name;
-	    subs_filter '(<(?:H|h)(?:E|e)(?:A|a)(?:D|d)(?:[^">]|"[^"]*")*>)' '$1<base href="$scheme://$http_host/something/$baseuri">' ro;
-	    `,
-			true,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /end-with-slash/ to /not-root and rewrite": {
-			"/end-with-slash/",
-			"/not-root",
-			`~* ^/end-with-slash/(?<baseuri>.*)`,
-			`
-	    rewrite /end-with-slash/(.*) /not-root/$1 break;
-	    proxy_pass http://upstream-name;
-	    subs_filter '(<(?:H|h)(?:E|e)(?:A|a)(?:D|d)(?:[^">]|"[^"]*")*>)' '$1<base href="$scheme://$http_host/end-with-slash/$baseuri">' ro;
-	    `,
-			true,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /something-complex to /not-root and rewrite": {
-			"/something-complex",
-			"/not-root",
-			`~* ^/something-complex\/?(?<baseuri>.*)`,
-			`
-	    rewrite /something-complex/(.*) /not-root/$1 break;
-	    proxy_pass http://upstream-name;
-	    subs_filter '(<(?:H|h)(?:E|e)(?:A|a)(?:D|d)(?:[^">]|"[^"]*")*>)' '$1<base href="$scheme://$http_host/something-complex/$baseuri">' ro;
-	    `,
-			true,
-			"",
-			false,
-			false,
-			false,
-			false},
-		"redirect /something to / and rewrite with specific scheme": {
-			"/something",
-			"/",
-			`~* ^/something\/?(?<baseuri>.*)`,
-			`
-	    rewrite /something/(.*) /$1 break;
-	    rewrite /something / break;
-	    proxy_pass http://upstream-name;
-	    subs_filter '(<(?:H|h)(?:E|e)(?:A|a)(?:D|d)(?:[^">]|"[^"]*")*>)' '$1<base href="http://$http_host/something/$baseuri">' ro;
-	    `,
-			true,
-			"http",
-			false,
-			false,
-			false,
-			false},
-		"redirect / to /something with sticky enabled": {
-			"/",
-			"/something",
-			`~* /`,
-			`
-	    rewrite /(.*) /something/$1 break;
-	    proxy_pass http://sticky-upstream-name;
-	    `,
-			false,
-			"http",
-			true,
-			false,
-			false,
-			false},
-		"redirect / to /something with sticky and dynamic config enabled": {
-			"/",
-			"/something",
-			`~* /`,
-			`
-	    rewrite /(.*) /something/$1 break;
-	    proxy_pass http://upstream_balancer;
-	    `,
-			false,
-			"http",
-			true,
-			false,
-			true,
-			false},
-		"add the X-Forwarded-Prefix header": {
-			"/there",
-			"/something",
-			`~* ^/there\/?(?<baseuri>.*)`,
-			`
-	    rewrite /there/(.*) /something/$1 break;
-	    proxy_set_header X-Forwarded-Prefix "/there/";
-	    proxy_pass http://sticky-upstream-name;
-	    `,
-			false,
-			"http",
-			true,
-			true,
-			false,
-			false},
+			true},
 	}
 )
 

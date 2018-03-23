@@ -65,14 +65,6 @@ func TestIsDynamicallyConfigurable(t *testing.T) {
 	}
 
 	newConfig = &ingress.Configuration{
-		Backends: []*ingress.Backend{{Name: "another-backend-8081"}},
-		Servers:  []*ingress.Server{{Hostname: "myapp1.fake"}},
-	}
-	if n.IsDynamicallyConfigurable(newConfig) {
-		t.Errorf("Expected to not be dynamically configurable when there's more than just backends change")
-	}
-
-	newConfig = &ingress.Configuration{
 		Backends: []*ingress.Backend{{Name: "a-backend-8080"}},
 		Servers:  servers,
 	}
@@ -80,11 +72,27 @@ func TestIsDynamicallyConfigurable(t *testing.T) {
 		t.Errorf("Expected to be dynamically configurable when only backends change")
 	}
 
+	newConfig = &ingress.Configuration{
+		Backends: backends,
+		Servers:  []*ingress.Server{{Hostname: "myapp1.fake"}},
+	}
+	if !n.IsDynamicallyConfigurable(newConfig) {
+		t.Errorf("Expected to be dynamically configurable when only servers change")
+	}
+
+	newConfig = &ingress.Configuration{
+		Backends: []*ingress.Backend{{Name: "a-backend-8080"}},
+		Servers:  []*ingress.Server{{Hostname: "myapp1.fake"}},
+	}
+	if !n.IsDynamicallyConfigurable(newConfig) {
+		t.Errorf("Expected to be dynamically configurable when servers and backends change")
+	}
+
 	if !n.runningConfig.Equal(commonConfig) {
 		t.Errorf("Expected running config to not change")
 	}
 
-	if !newConfig.Equal(&ingress.Configuration{Backends: []*ingress.Backend{{Name: "a-backend-8080"}}, Servers: servers}) {
+	if !newConfig.Equal(&ingress.Configuration{Backends: []*ingress.Backend{{Name: "a-backend-8080"}}, Servers: []*ingress.Server{{Hostname: "myapp1.fake"}}}) {
 		t.Errorf("Expected new config to not change")
 	}
 }

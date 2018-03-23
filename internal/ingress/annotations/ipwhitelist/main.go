@@ -22,8 +22,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	extensions "k8s.io/api/extensions/v1beta1"
 	"github.com/NCCloud/fluid/internal/net"
+	extensions "k8s.io/api/extensions/v1beta1"
 
 	"github.com/NCCloud/fluid/internal/ingress/annotations/parser"
 	ing_errors "github.com/NCCloud/fluid/internal/ingress/errors"
