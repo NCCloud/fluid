@@ -309,6 +309,7 @@ func (r *crdHandler) getServingInfoFor(crd *apiextensions.CustomResourceDefiniti
 		&metav1.GetOptions{},
 		&metav1.DeleteOptions{},
 	)
+	parameterScheme.AddGeneratedDeepCopyFuncs(metav1.GetGeneratedDeepCopyFuncs()...)
 	parameterCodec := runtime.NewParameterCodec(parameterScheme)
 
 	kind := schema.GroupVersionKind{Group: crd.Spec.Group, Version: crd.Spec.Version, Kind: crd.Status.AcceptedNames.Kind}
