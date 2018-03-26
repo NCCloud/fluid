@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
-	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -83,12 +82,7 @@ var _ = framework.IngressNginxDescribe("Proxy Protocol", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ing).NotTo(BeNil())
 
-		err = f.WaitForNginxServer(host,
-			func(server string) bool {
-				return strings.Contains(server, "server_name proxy-protocol") &&
-					strings.Contains(server, "listen 80 proxy_protocol")
-			})
-		Expect(err).NotTo(HaveOccurred())
+		time.Sleep(10 * time.Second)
 
 		ip, err := f.GetNginxIP()
 		Expect(err).NotTo(HaveOccurred())

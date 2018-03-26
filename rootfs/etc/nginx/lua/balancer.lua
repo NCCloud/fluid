@@ -24,12 +24,12 @@ if not config_check_code_cache then
   return error("failed to create the cache for config_check_code: " .. (err or "unknown"))
 end
 
-local servers, servers_err = lrucache.new(10240)
+local servers, servers_err = lrucache.new(1024000)
 if not servers then
   return error("failed to create the cache for servers: " .. (servers_err or "unknown"))
 end
 
-local backends, backends_err = lrucache.new(10240)
+local backends, backends_err = lrucache.new(1024000)
 if not backends then
   return error("failed to create the cache for backends: " .. (backends_err or "unknown"))
 end
@@ -103,6 +103,7 @@ local function load_ctx()
       if (ngx.ctx.server == nil) then
         ngx.ctx.server = servers:get("_")
         if (ngx.ctx.server == nil) then
+          ngx.log(ngx.ERR, "Unable to get virtualhost name from ctx cache")
           ngx.status = 503
           ngx.exit(ngx.status)
         end
@@ -166,6 +167,7 @@ function _M.ssl()
     if (server == nil) then
       server = servers:get("_")
       if (server == nil) then
+        ngx.log(ngx.ERR, "Unable to get SSL virtualhost name from ctx cache")
         ngx.status = 503
         ngx.exit(ngx.status)
       end

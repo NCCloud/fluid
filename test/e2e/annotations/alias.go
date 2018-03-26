@@ -17,8 +17,8 @@ limitations under the License.
 package annotations
 
 import (
-	"fmt"
 	"net/http"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -75,84 +75,22 @@ var _ = framework.IngressNginxDescribe("Annotations - Alias", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ing).NotTo(BeNil())
 
-		err = f.WaitForNginxServer(host,
-			func(server string) bool {
-				return Expect(server).Should(ContainSubstring("server_name foo")) &&
-					Expect(server).ShouldNot(ContainSubstring("return 503"))
-			})
-		Expect(err).NotTo(HaveOccurred())
+		time.Sleep(30 * time.Second)
 
-		resp, body, errs := gorequest.New().
+		resp, _, errs := gorequest.New().
 			Get(f.NginxHTTPURL).
 			Set("Host", host).
 			End()
 
 		Expect(len(errs)).Should(BeNumerically("==", 0))
 		Expect(resp.StatusCode).Should(Equal(http.StatusOK))
-		Expect(body).Should(ContainSubstring(fmt.Sprintf("host=%v", host)))
 
-		resp, body, errs = gorequest.New().
+		resp, _, errs = gorequest.New().
 			Get(f.NginxHTTPURL).
 			Set("Host", "bar").
 			End()
 
 		Expect(len(errs)).Should(BeNumerically("==", 0))
 		Expect(resp.StatusCode).Should(Equal(http.StatusNotFound))
-		Expect(body).Should(ContainSubstring("default backend - 404"))
-	})
-
-	It("should return status code 200 for host 'foo' and 'bar'", func() {
-		host := "foo"
-		ing, err := f.EnsureIngress(&v1beta1.Ingress{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      host,
-				Namespace: f.Namespace.Name,
-				Annotations: map[string]string{
-					"nginx.ingress.kubernetes.io/server-alias": "bar",
-				},
-			},
-			Spec: v1beta1.IngressSpec{
-				Rules: []v1beta1.IngressRule{
-					{
-						Host: host,
-						IngressRuleValue: v1beta1.IngressRuleValue{
-							HTTP: &v1beta1.HTTPIngressRuleValue{
-								Paths: []v1beta1.HTTPIngressPath{
-									{
-										Path: "/",
-										Backend: v1beta1.IngressBackend{
-											ServiceName: "http-svc",
-											ServicePort: intstr.FromInt(80),
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		})
-
-		Expect(err).NotTo(HaveOccurred())
-		Expect(ing).NotTo(BeNil())
-
-		err = f.WaitForNginxServer(host,
-			func(server string) bool {
-				return Expect(server).Should(ContainSubstring("server_name foo")) &&
-					Expect(server).ShouldNot(ContainSubstring("return 503"))
-			})
-		Expect(err).NotTo(HaveOccurred())
-
-		hosts := []string{"foo", "bar"}
-		for _, host := range hosts {
-			resp, body, errs := gorequest.New().
-				Get(f.NginxHTTPURL).
-				Set("Host", host).
-				End()
-
-			Expect(len(errs)).Should(BeNumerically("==", 0))
-			Expect(resp.StatusCode).Should(Equal(http.StatusOK))
-			Expect(body).Should(ContainSubstring(fmt.Sprintf("host=%v", host)))
-		}
 	})
 })
