@@ -1,8 +1,8 @@
 # FLUID Ingress Controller
 
-[![Build Status](https://travis-ci.org/NCCloud/fluid.svg?branch=master)](https://travis-ci.org/kubernetes/ingress-nginx)
-[![Coverage Status](https://codecov.io/gh/NCCloud/fluid/branch/master/graph/badge.svg)](https://codecov.io/gh/kubernetes/ingress-nginx)
-[![Go Report Card](https://goreportcard.com/badge/github.com/NCCloud/fluid)](https://goreportcard.com/report/github.com/kubernetes/ingress-nginx)
+[![Build Status](https://travis-ci.org/NCCloud/fluid.svg?branch=master)](https://travis-ci.org/NCCloud/fluid)
+[![Coverage Status](https://codecov.io/gh/NCCloud/fluid/branch/master/graph/badge.svg)](https://codecov.io/gh/NCCloud/fluid)
+[![Go Report Card](https://goreportcard.com/badge/github.com/NCCloud/fluid)](https://goreportcard.com/report/github.com/NCCloud/fluid)
 
 ## Description
 
