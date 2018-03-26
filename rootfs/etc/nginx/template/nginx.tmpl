@@ -39,9 +39,9 @@ http {
     lua_package_cpath "/usr/local/lib/lua/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;";
     lua_package_path "/etc/nginx/lua/?.lua;/etc/nginx/lua/vendor/?.lua;/usr/local/lib/lua/?.lua;;";
 
-    lua_shared_dict configuration_data 512M;
-    lua_shared_dict round_robin_state 1M;
-    lua_shared_dict locks 512k;
+    lua_shared_dict configuration_data 1024M;
+    lua_shared_dict round_robin_state 128M;
+    lua_shared_dict locks 16M;
 
     init_by_lua_block {
         require("resty.core")

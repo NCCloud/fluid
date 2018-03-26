@@ -24,12 +24,12 @@ if not config_check_code_cache then
   return error("failed to create the cache for config_check_code: " .. (err or "unknown"))
 end
 
-local servers, servers_err = lrucache.new(10240)
+local servers, servers_err = lrucache.new(1024000)
 if not servers then
   return error("failed to create the cache for servers: " .. (servers_err or "unknown"))
 end
 
-local backends, backends_err = lrucache.new(10240)
+local backends, backends_err = lrucache.new(1024000)
 if not backends then
   return error("failed to create the cache for backends: " .. (backends_err or "unknown"))
 end
