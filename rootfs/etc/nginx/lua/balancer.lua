@@ -103,6 +103,7 @@ local function load_ctx()
       if (ngx.ctx.server == nil) then
         ngx.ctx.server = servers:get("_")
         if (ngx.ctx.server == nil) then
+          ngx.log(ngx.ERR, "Unable to get virtualhost name from ctx cache")
           ngx.status = 503
           ngx.exit(ngx.status)
         end
@@ -166,6 +167,7 @@ function _M.ssl()
     if (server == nil) then
       server = servers:get("_")
       if (server == nil) then
+        ngx.log(ngx.ERR, "Unable to get SSL virtualhost name from ctx cache")
         ngx.status = 503
         ngx.exit(ngx.status)
       end
