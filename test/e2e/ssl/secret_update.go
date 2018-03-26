@@ -18,7 +18,6 @@ package ssl
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	. "github.com/onsi/ginkgo"
@@ -98,12 +97,7 @@ var _ = framework.IngressNginxDescribe("SSL", func() {
 			ing.Namespace)
 		Expect(err).ToNot(HaveOccurred())
 
-		err = f.WaitForNginxServer(host,
-			func(server string) bool {
-				return strings.Contains(server, "server_name ssl-update") &&
-					strings.Contains(server, "listen 443")
-			})
-		Expect(err).ToNot(HaveOccurred())
+		time.Sleep(10 * time.Second)
 
 		log, err := f.NginxLogs()
 		Expect(err).ToNot(HaveOccurred())

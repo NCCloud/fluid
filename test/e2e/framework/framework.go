@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
-	"time"
 
 	"k8s.io/api/core/v1"
 	apiextcs "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
@@ -157,20 +156,6 @@ func (f *Framework) GetNginxURL(scheme RequestScheme) (string, error) {
 	}
 
 	return fmt.Sprintf("%v://%v:%v", scheme, ip, port), nil
-}
-
-// WaitForNginxServer waits until the nginx configuration contains a particular server section
-func (f *Framework) WaitForNginxServer(name string, matcher func(cfg string) bool) error {
-	// initial wait to allow the update of the ingress controller
-	time.Sleep(5 * time.Second)
-	return wait.PollImmediate(Poll, time.Minute*2, f.matchNginxConditions(name, matcher))
-}
-
-// WaitForNginxConfiguration waits until the nginx configuration contains a particular configuration
-func (f *Framework) WaitForNginxConfiguration(matcher func(cfg string) bool) error {
-	// initial wait to allow the update of the ingress controller
-	time.Sleep(5 * time.Second)
-	return wait.PollImmediate(Poll, time.Minute*2, f.matchNginxConditions("", matcher))
 }
 
 // NginxLogs returns the logs of the nginx ingress controller pod running

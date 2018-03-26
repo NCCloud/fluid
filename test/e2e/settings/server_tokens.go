@@ -17,7 +17,7 @@ limitations under the License.
 package setting
 
 import (
-	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -75,12 +75,7 @@ var _ = framework.IngressNginxDescribe("Server Tokens", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ing).NotTo(BeNil())
 
-		err = f.WaitForNginxConfiguration(
-			func(server string) bool {
-				return strings.Contains(server, "server_tokens off") &&
-					strings.Contains(server, "more_set_headers \"Server: \"")
-			})
-		Expect(err).NotTo(HaveOccurred())
+		time.Sleep(10 * time.Second)
 	})
 
 	It("should exists Server header in the response when is enabled", func() {
@@ -117,10 +112,6 @@ var _ = framework.IngressNginxDescribe("Server Tokens", func() {
 		Expect(err).NotTo(HaveOccurred())
 		Expect(ing).NotTo(BeNil())
 
-		err = f.WaitForNginxConfiguration(
-			func(server string) bool {
-				return strings.Contains(server, "server_tokens on")
-			})
-		Expect(err).NotTo(HaveOccurred())
+		time.Sleep(10 * time.Second)
 	})
 })
