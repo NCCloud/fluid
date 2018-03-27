@@ -41,7 +41,9 @@ http {
 
     lua_shared_dict configuration_data 1024M;
     lua_shared_dict round_robin_state 128M;
-    lua_shared_dict locks 16M;
+    lua_shared_dict chash_state 128M;
+    lua_shared_dict round_robin_locks 16M;
+    lua_shared_dict chash_locks 16M;
 
     init_by_lua_block {
         require("resty.core")
@@ -379,9 +381,15 @@ http {
     upstream upstream_balancer {
         server 0.0.0.1; # placeholder
 
+        {{ if eq $cfg.LoadBalanceAlgorithm "round_robin" }}
         balancer_by_lua_block {
-          balancer.balance()
+          balancer.balance("rr")
         }
+        {{ else }}
+        balancer_by_lua_block {
+          balancer.balance("chash")
+        }
+        {{ end }}
 
         keepalive 1000;
     }
