@@ -31,12 +31,4 @@ then
     export ARCH=$1
 fi
 
-case "$COMPONENT" in
-"fluid")
-    $DIR/fluid.sh
-    ;;
-*)
-    echo "Invalid option in environment variable COMPONENT"
-    exit 1
-    ;;
-esac
+$DIR/fluid.sh
