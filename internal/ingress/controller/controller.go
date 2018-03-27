@@ -622,9 +622,6 @@ func (n *NGINXController) createUpstreams(data []*extensions.Ingress, du *ingres
 			if upstreams[defBackend].UpstreamHashBy == "" {
 				upstreams[defBackend].UpstreamHashBy = anns.UpstreamHashBy
 			}
-			if upstreams[defBackend].LoadBalancing == "" {
-				upstreams[defBackend].LoadBalancing = anns.LoadBalancing
-			}
 
 			svcKey := fmt.Sprintf("%v/%v", ing.GetNamespace(), ing.Spec.Backend.ServiceName)
 
@@ -678,10 +675,6 @@ func (n *NGINXController) createUpstreams(data []*extensions.Ingress, du *ingres
 
 				if upstreams[name].UpstreamHashBy == "" {
 					upstreams[name].UpstreamHashBy = anns.UpstreamHashBy
-				}
-
-				if upstreams[name].LoadBalancing == "" {
-					upstreams[name].LoadBalancing = anns.LoadBalancing
 				}
 
 				svcKey := fmt.Sprintf("%v/%v", ing.GetNamespace(), path.Backend.ServiceName)

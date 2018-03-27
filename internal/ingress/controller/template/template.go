@@ -122,7 +122,6 @@ var (
 		"buildLocation":            buildLocation,
 		"buildAuthLocation":        buildAuthLocation,
 		"buildAuthResponseHeaders": buildAuthResponseHeaders,
-		"buildLoadBalancingConfig": buildLoadBalancingConfig,
 		"filterRateLimits":         filterRateLimits,
 		"buildRateLimitZones":      buildRateLimitZones,
 		"buildRateLimit":           buildRateLimit,
@@ -276,31 +275,6 @@ func buildLogFormatUpstream(input interface{}) string {
 	}
 
 	return cfg.BuildLogFormatUpstream()
-}
-
-func buildLoadBalancingConfig(b interface{}, fallbackLoadBalancing string) string {
-	backend, ok := b.(*ingress.Backend)
-	if !ok {
-		glog.Errorf("expected an '*ingress.Backend' type but %T was returned", b)
-		return ""
-	}
-
-	if backend.UpstreamHashBy != "" {
-		return "hash {{ $upstream.UpstreamHashBy }} consistent;"
-	}
-
-	if backend.LoadBalancing != "" {
-		if backend.LoadBalancing == "round_robin" {
-			return ""
-		}
-		return fmt.Sprintf("%s;", backend.LoadBalancing)
-	}
-
-	if fallbackLoadBalancing == "round_robin" {
-		return ""
-	}
-
-	return fmt.Sprintf("%s;", fallbackLoadBalancing)
 }
 
 // TODO: Needs Unit Tests

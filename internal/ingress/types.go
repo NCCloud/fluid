@@ -88,8 +88,6 @@ type Backend struct {
 	SessionAffinity SessionAffinityConfig `json:"sessionAffinityConfig"`
 	// Consistent hashing by NGINX variable
 	UpstreamHashBy string `json:"upstream-hash-by,omitempty"`
-	// LB algorithm configuration per ingress
-	LoadBalancing string `json:"load-balance,omitempty" groups:"dynamic"`
 }
 
 // SessionAffinityConfig describes different affinity configurations for new sessions.

@@ -6,18 +6,22 @@ local util = require("util")
 local lrucache = require("resty.lrucache")
 local resty_lock = require("resty.lock")
 
+
 -- measured in seconds
 -- for an Nginx worker to pick up the new list of configs
 -- it will take <the delay until controller POSTed the backend object to the Nginx endpoint> + CONFIG_SYNC_INTERVAL
 local CONFIG_SYNC_INTERVAL = 1
 
 local ROUND_ROBIN_LOCK_KEY = "round_robin"
+local CHASH_LOCK_KEY = "chash"
 
 local round_robin_state = ngx.shared.round_robin_state
+local chash_state = ngx.shared.chash_state
 
 local _M = {}
 
-local round_robin_lock = resty_lock:new("locks", {timeout = 0, exptime = 0.1})
+local round_robin_lock = resty_lock:new("round_robin_locks", {timeout = 0, exptime = 0.1})
+local chash_lock = resty_lock:new("chash_locks", {timeout = 0, exptime = 0.1})
 
 local config_check_code_cache, err = lrucache.new(1)
 if not config_check_code_cache then
@@ -32,6 +36,11 @@ end
 local backends, backends_err = lrucache.new(1024000)
 if not backends then
   return error("failed to create the cache for backends: " .. (backends_err or "unknown"))
+end
+
+local chashs, chashs_err = lrucache.new(1024000)
+if not chashs then
+  return error("failed to create the cache for chashs: " .. (chashs_err or "unknown"))
 end
 
 local function sync_server(server)
@@ -208,7 +217,9 @@ function _M.ssl()
   end
 end
 
-function _M.balance()
+function _M.balance(lb_alg)
+  ngx.log(ngx.INFO, "Load balancing algorithm: " ..  tostring(lb_alg))
+
   load_ctx()
   ngx_balancer.set_more_tries(1)
 
@@ -216,19 +227,55 @@ function _M.balance()
   ngx.log(ngx.INFO, "Context Backend name:" ..  tostring(backend_name))
   local backend = backends:get(backend_name)
 
-  -- Round-Robin
-  round_robin_lock:lock(backend_name .. ROUND_ROBIN_LOCK_KEY)
-  local last_index = round_robin_state:get(backend_name)
-  local index, endpoint = next(backend.endpoints, last_index)
-  if not index then
-    index = 1
-    endpoint = backend.endpoints[index]
-  end
-  round_robin_state:set(backend_name, index)
-  round_robin_lock:unlock(backend_name .. ROUND_ROBIN_LOCK_KEY)
+  local host
+  local port
 
-  local host = endpoint.address
-  local port = endpoint.port
+  if lb_alg == "rr" then
+    round_robin_lock:lock(backend_name .. ROUND_ROBIN_LOCK_KEY)
+    local last_index = round_robin_state:get(backend_name)
+    local index, endpoint = next(backend.endpoints, last_index)
+    if not index then
+      index = 1
+      endpoint = backend.endpoints[index]
+    end
+    round_robin_state:set(backend_name, index)
+    round_robin_lock:unlock(backend_name .. ROUND_ROBIN_LOCK_KEY)
+
+    host = endpoint.address
+    port = endpoint.port
+  elseif lb_alg == "chash" then
+    local remote_addr = ngx.var.remote_addr
+    local pointer_id = remote_addr .. ":" .. ngx.ctx.server.hostname .. ":" .. ngx.ctx.location.path
+    ngx.log(ngx.INFO, "CHASH Balancer pointer: " .. pointer_id)
+    chash_lock:lock(pointer_id .. CHASH_LOCK_KEY)
+    local ep_index = chash_state:get(pointer_id)
+    local endpoint
+    if ep_index == nil then
+      ngx.log(ngx.INFO, "Balancer pointer NOT cached, creating new cached endpoint")
+      local free_endpoint_id = math.random(#backend.endpoints)
+      endpoint = backend.endpoints[free_endpoint_id]
+      chash_state:set(pointer_id, free_endpoint_id, 600)
+    else
+      ngx.log(ngx.INFO, "Balancer pointer cached, with id: " .. tostring(ep_index))
+      endpoint = backend.endpoints[ep_index]
+      if endpoint == nil then
+        ngx.log(ngx.INFO, "Balancer pointer cached id: " .. tostring(ep_index) .. " INVALID, regenerating cache id")
+        local free_endpoint_id = math.random(#backend.endpoints)
+        endpoint = backend.endpoints[free_endpoint_id]
+      else
+        chash_state:set(pointer_id, ep_index, 600)
+      end
+    end
+
+    chash_lock:unlock(pointer_id .. CHASH_LOCK_KEY)
+
+    host = endpoint.address
+    port = endpoint.port
+  else
+    ngx.log(ngx.ERR, "Load balancing algorithm unknown: " .. tostring(lb_alg))
+    ngx.status = 503
+    ngx.exit(ngx.status)
+  end
 
   local ok
   ok, err = ngx_balancer.set_current_peer(host, port)
