@@ -19,6 +19,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source $DIR/common.sh
 
 IMAGE=$(make -s -C $DIR/../ image-info)
+TAG=$TRAVIS_TAG
 
 if docker_tag_exists "NCCloud/fluid" $(echo $IMAGE | jq .tag) "$ARCH"; then
     echo "Image already published"
