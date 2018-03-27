@@ -22,7 +22,24 @@ go:
 
 go_import_path: github.com/NCCloud/fluid
 
-# New secure variables can be added using travis encrypt -r kubernetes/ingress-nginx --add K=V 
+stages:
+  - name: Static Check
+    if: NOT tag IS present
+  - name: Coverage
+    if: NOT tag IS present
+  - name: e2e
+    if: NOT tag IS present
+  - name: publish amd64
+    if: branch = master AND tag IS present
+  - name: publish arm
+    if: branch = master AND tag IS present
+  - name: publish arm64
+    if: branch = master AND tag IS present
+  - name: publish ppc64le
+    if: branch = master AND tag IS present
+  - name: publish s390x
+    if: branch = master AND tag IS present
+ 
 env:
   global:
   - CHANGE_MINIKUBE_NONE_USER=true
@@ -43,8 +60,7 @@ jobs:
     - go get -u github.com/jteeuwen/go-bindata/...
     - make verify-all
   - stage: Coverage
-    before_script:
-    # start minikube 
+    before_script: 
     - test/e2e/up.sh
     script:
     - if ! go get github.com/jteeuwen/go-bindata/...; then github.com/jteeuwen/go-bindata/...;fi
@@ -57,24 +73,18 @@ jobs:
     - test/e2e/wait-for-nginx.sh
     script:
     - make e2e-test
-  # split builds to avoid job timeouts
   - stage: publish amd64
-    if: branch = master AND tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh amd64
   - stage: publish arm
-    if: branch = master AND tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm
   - stage: publish arm64
-    if: branch = master AND tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm64
   - stage: publish ppc64le
-    if: branch = master AND tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh ppc64le
   - stage: publish s390x
-    if: branch = master AND tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh s390x
