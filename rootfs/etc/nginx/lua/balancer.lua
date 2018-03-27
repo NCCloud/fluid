@@ -226,11 +226,6 @@ function _M.balance(lb_alg)
   local backend_name = ngx.ctx.location.backend
   ngx.log(ngx.INFO, "Context Backend name:" ..  tostring(backend_name))
   local backend = backends:get(backend_name)
-  if (backend == nil) then
-    ngx.log(ngx.ERR, "Unable to get backend name from ctx cache")
-    ngx.status = 503
-    ngx.exit(ngx.status)
-  end
 
   local host
   local port
