@@ -34,8 +34,44 @@ env:
 
 jobs:
   include:
+  - stage: Static Check 
+    script: 
+    - sudo luarocks install luacheck 
+    - make luacheck 
+    - go get github.com/golang/lint/golint 
+    - go get -u github.com/jteeuwen/go-bindata/... 
+    - make verify-all 
+  - stage: Coverage 
+    before_script:  
+    - test/e2e/up.sh 
+    script: 
+    - if ! go get github.com/jteeuwen/go-bindata/...; then github.com/jteeuwen/go-bindata/...;fi 
+    - make cover 
+  - stage: e2e 
+    before_script: 
+    - if ! go get github.com/jteeuwen/go-bindata/...; then github.com/jteeuwen/go-bindata/...;fi 
+    - make e2e-image 
+    - test/e2e/up.sh 
+    - test/e2e/wait-for-nginx.sh 
+    script: 
+    - make e2e-test 
   - stage: publish amd64
     if: tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh amd64
-
+    - stage: publish arm 
+    if: tag IS present 
+    script: 
+    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm 
+  - stage: publish arm64 
+    if: tag IS present 
+    script: 
+    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm64 
+  - stage: publish ppc64le 
+    if: tag IS present 
+    script: 
+    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh ppc64le 
+  - stage: publish s390x 
+    if: tag IS present 
+    script: 
+    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh s390x 
