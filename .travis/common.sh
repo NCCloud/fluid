@@ -48,9 +48,9 @@ fi
 
 SKIP_MESSAGE="Publication of docker image to quay.io registry skipped."
 
-if [ "$TRAVIS_EVENT_TYPE" != "api" ];
+if [ "$TRAVIS_EVENT_TYPE" != "push" ];
 then
-  echo "Only builds triggered from travis-ci API is allowed. $SKIP_MESSAGE";
+  echo "Only builds triggered from push is allowed. $SKIP_MESSAGE";
   exit 0;
 fi
 
