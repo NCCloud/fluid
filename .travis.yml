@@ -38,19 +38,4 @@ jobs:
     if: tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh amd64
-  - stage: publish arm
-    if: tag IS present
-    script:
-    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm
-  - stage: publish arm64
-    if: tag IS present
-    script:
-    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm64
-  - stage: publish ppc64le
-    if: tag IS present
-    script:
-    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh ppc64le
-  - stage: publish s390x
-    if: tag IS present
-    script:
-    - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh s390x
+
