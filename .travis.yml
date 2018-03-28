@@ -59,7 +59,7 @@ jobs:
     if: tag IS present
     script:
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh amd64
-    - stage: publish arm 
+  - stage: publish arm 
     if: tag IS present 
     script: 
     - travis_wait ${TRAVIS_TIMEOUT} .travis/publish.sh arm 
