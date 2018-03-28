@@ -540,7 +540,11 @@ http {
                     proxy_set_header HOST                   $host; 
                     if ($scheme = https) { 
                         add_header HTTPS on; 
-                    } 
+                    }
+
+                    {{ if $cfg.ProxyBodySize }}
+                    client_max_body_size                    "{{ $cfg.ProxyBodySize }}";
+                    {{ end }}
 
                     rewrite_by_lua_block {
                         balancer.rewrite()
