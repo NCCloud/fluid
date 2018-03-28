@@ -278,11 +278,6 @@ type Configuration struct {
 	// https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_bucket_size
 	ProxyHeadersHashBucketSize int `json:"proxy-headers-hash-bucket-size,omitempty"`
 
-	// Maximum size of the bucket for the proxy headers hash tables
-	// http://nginx.org/en/docs/hash.html
-	// https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_headers_hash_bucket_size
-	ProxyBodySize string `json:"proxy-body-size,omitempty"`
-
 	// Enables or disables emitting nginx version in error messages and in the “Server” response header field.
 	// http://nginx.org/en/docs/http/ngx_http_core_module.html#server_tokens
 	// Default: true
@@ -544,7 +539,6 @@ func NewDefault() Configuration {
 		ProxyHeadersHashMaxSize:    512,
 		ProxyHeadersHashBucketSize: 64,
 		ProxyStreamResponses:       1,
-		ProxyBodySize:              bodySize,
 		ShowServerTokens:           true,
 		SSLBufferSize:              sslBufferSize,
 		SSLCiphers:                 sslCiphers,
