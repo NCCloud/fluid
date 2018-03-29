@@ -2,7 +2,6 @@ local ngx_balancer = require("ngx.balancer")
 local ssl = require("ngx.ssl")
 local json = require("cjson")
 local configuration = require("configuration")
-local util = require("util")
 local lrucache = require("resty.lrucache")
 local resty_lock = require("resty.lock")
 
