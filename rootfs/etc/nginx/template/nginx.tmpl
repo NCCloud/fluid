@@ -39,6 +39,7 @@ http {
     lua_package_cpath "/usr/local/lib/lua/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;";
     lua_package_path "/etc/nginx/lua/?.lua;/etc/nginx/lua/vendor/?.lua;/usr/local/lib/lua/?.lua;;";
 
+    lua_shared_dict first_config_load 12k;
     lua_shared_dict configuration_data 1024M;
     lua_shared_dict round_robin_state 128M;
     lua_shared_dict chash_state 128M;
@@ -566,7 +567,9 @@ http {
 
         location {{ $healthzURI }} {
             access_log off;
-            return 200;
+            content_by_lua_block {
+              configuration.check()
+            }
         }
 
         location /nginx_status {
