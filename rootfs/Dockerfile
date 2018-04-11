@@ -12,19 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM BASEIMAGE
+FROM openresty/openresty:1.13.6.1-1-alpine
 
-CROSS_BUILD_COPY qemu-QEMUARCH-static /usr/bin/
+RUN apk add --no-cache diffutils dumb-init perl curl \
+  && opm install knyar/nginx-lua-prometheus
 
-RUN clean-install \
-  diffutils \
-  dumb-init
-
-# Create symlinks to redirect nginx logs to stdout and stderr docker log collector
-# This only works if nginx is started with CMD or ENTRYPOINT
-RUN mkdir -p /var/log/nginx \
-  && ln -sf /dev/stdout /var/log/nginx/access.log \
-  && ln -sf /dev/stderr /var/log/nginx/error.log
+# Create symlinks to redirect openresty logs to stdout and stderr docker log collector
+# This only works if openresty is started with CMD or ENTRYPOINT
+RUN mkdir -p /var/log/openresty \
+  && ln -sf /dev/stdout /var/log/openresty/access.log \
+  && ln -sf /dev/stderr /var/log/openresty/error.log
 
 COPY . /
 

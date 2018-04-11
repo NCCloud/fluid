@@ -18,13 +18,7 @@ if ! [ -z $DEBUG ]; then
   set -x
 fi
 
-if [ -z $ARCH ]; then
-  echo "Environment variable ARCH is not defined. Aborting.";
-  exit 0;
-fi
-
 echo "COMPONENT:                  $COMPONENT"
-echo "PLATFORM:                   $ARCH"
 echo "TRAVIS_REPO_SLUG:           $TRAVIS_REPO_SLUG"
 echo "TRAVIS_PULL_REQUEST:        $TRAVIS_PULL_REQUEST"
 echo "TRAVIS_EVENT_TYPE:          $TRAVIS_EVENT_TYPE"

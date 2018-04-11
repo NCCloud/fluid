@@ -81,13 +81,13 @@ end
 function _M.check()
   local fcl = first_config_load:get("ok")
   if fcl == nil then
-    ngx.log(ngx.ERR, "Healty check Code: 503")
+    ngx.log(ngx.INFO, "Healty check Code: 503")
     ngx.status = 503
   elseif fcl ~= true then
-    ngx.log(ngx.ERR, "Healty check Code: 503")
+    ngx.log(ngx.INFO, "Healty check Code: 503")
     ngx.status = 503
   else
-    ngx.log(ngx.ERR, "Healty check Code: 200")
+    ngx.log(ngx.INFO, "Healty check Code: 200")
     ngx.status = 200
   end
 end

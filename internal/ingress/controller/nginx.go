@@ -45,8 +45,6 @@ import (
 	"k8s.io/client-go/util/flowcontrol"
 	"k8s.io/kubernetes/pkg/util/filesystem"
 
-	"path/filepath"
-
 	"github.com/liip/sheriff"
 
 	"github.com/NCCloud/fluid/internal/file"
@@ -78,7 +76,7 @@ var (
 	tmplPath    = "/etc/nginx/template/nginx.tmpl"
 	geoipPath   = "/etc/nginx/geoip"
 	cfgPath     = "/etc/nginx/nginx.conf"
-	nginxBinary = "/usr/sbin/nginx"
+	nginxBinary = "/usr/local/openresty/bin/openresty"
 )
 
 // NewNGINXController creates a new NGINX Ingress controller.
@@ -195,35 +193,6 @@ Error loading new template : %v
 		if err != nil {
 			glog.Fatalf("unexpected error creating file watcher: %v", err)
 		}
-
-		filesToWatch := []string{}
-		err := filepath.Walk("/etc/nginx/geoip/", func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
-
-			if info.IsDir() {
-				return nil
-			}
-
-			filesToWatch = append(filesToWatch, path)
-			return nil
-		})
-
-		if err != nil {
-			glog.Fatalf("unexpected error creating file watcher: %v", err)
-		}
-
-		for _, f := range filesToWatch {
-			_, err = watch.NewFileWatcher(f, func() {
-				glog.Info("file %v changed. Reloading NGINX", f)
-				n.SetForceReload(true)
-			})
-			if err != nil {
-				glog.Fatalf("unexpected error creating file watcher: %v", err)
-			}
-		}
-
 	}
 
 	return n

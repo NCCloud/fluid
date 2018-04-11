@@ -98,7 +98,7 @@ type Configuration struct {
 
 	// AccessLogPath sets the path of the access logs if enabled
 	// http://nginx.org/en/docs/http/ngx_http_log_module.html#access_log
-	// By default access logs go to /var/log/nginx/access.log
+	// By default access logs go to /var/log/openresty/access.log
 	AccessLogPath string `json:"access-log-path,omitempty"`
 
 	// WorkerCpuAffinity bind nginx worker processes to CPUs this will improve response latency
@@ -107,7 +107,7 @@ type Configuration struct {
 	WorkerCpuAffinity string `json:"worker-cpu-affinity,omitempty"`
 	// ErrorLogPath sets the path of the error logs
 	// http://nginx.org/en/docs/ngx_core_module.html#error_log
-	// By default error logs go to /var/log/nginx/error.log
+	// By default error logs go to /var/log/openresty/error.log
 	ErrorLogPath string `json:"error-log-path,omitempty"`
 
 	// EnableDynamicTLSRecords enables dynamic TLS record sizes
@@ -503,9 +503,9 @@ func NewDefault() Configuration {
 	defBindAddress := make([]string, 0)
 	cfg := Configuration{
 		AllowBackendServerHeader:   false,
-		AccessLogPath:              "/var/log/nginx/access.log",
+		AccessLogPath:              " /var/log/openresty/access.log",
 		WorkerCpuAffinity:          "",
-		ErrorLogPath:               "/var/log/nginx/error.log",
+		ErrorLogPath:               " /var/log/openresty/error.log",
 		BrotliLevel:                4,
 		BrotliTypes:                brotliTypes,
 		ClientHeaderBufferSize:     "1k",

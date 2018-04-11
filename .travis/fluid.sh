@@ -20,11 +20,11 @@ source $DIR/common.sh
 
 IMAGE=$(make -s -C $DIR/../ image-info)
 
-if docker_tag_exists "NCCloud/fluid" $(echo $IMAGE | jq .tag) "$ARCH"; then
+if docker_tag_exists "NCCloud/fluid" $(echo $IMAGE | jq .tag); then
     echo "Image already published"
     exit 0
 fi
 
-echo "building fluid-$ARCH image..."
-TAG=$TRAVIS_TAG make -C $DIR/../ sub-container-$ARCH
-TAG=$TRAVIS_TAG make -C $DIR/../ sub-push-$ARCH
+echo "building Fluid image..."
+TAG=$TRAVIS_TAG make -C $DIR/../ build-container
+TAG=$TRAVIS_TAG make -C $DIR/../ push

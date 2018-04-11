@@ -36,8 +36,8 @@ events {
 }
 
 http {
-    lua_package_cpath "/usr/local/lib/lua/?.so;/usr/lib/x86_64-linux-gnu/lua/5.1/?.so;;";
-    lua_package_path "/etc/nginx/lua/?.lua;/etc/nginx/lua/vendor/?.lua;/usr/local/lib/lua/?.lua;;";
+    lua_package_cpath "/usr/local/openresty/lualib/?.so;;";
+    lua_package_path "/etc/nginx/lua/?.lua;/usr/local/openresty/lualib/?.lua;;";
 
     lua_shared_dict first_config_load 12k;
     lua_shared_dict configuration_data 1024M;
@@ -84,19 +84,9 @@ http {
     set_real_ip_from    {{ $trusted_ip }};
     {{ end }}
 
-    {{ if $cfg.UseGeoIP }}
-    {{/* databases used to determine the country depending on the client IP address */}}
-    {{/* http://nginx.org/en/docs/http/ngx_http_geoip_module.html */}}
-    {{/* this is require to calculate traffic for individual country using GeoIP in the status page */}}
-    geoip_country       /etc/nginx/geoip/GeoIP.dat;
-    geoip_city          /etc/nginx/geoip/GeoLiteCity.dat;
-    geoip_org           /etc/nginx/geoip/GeoIPASNum.dat;
-    geoip_proxy_recursive on;
-    {{ end }}
-
     {{ if $cfg.EnableVtsStatus }}
-    vhost_traffic_status_zone shared:vhost_traffic_status:{{ $cfg.VtsStatusZoneSize }};
-    vhost_traffic_status_filter_by_set_key {{ $cfg.VtsDefaultFilterKey }};
+    #vhost_traffic_status_zone shared:vhost_traffic_status:{{ $cfg.VtsStatusZoneSize }};
+    #vhost_traffic_status_filter_by_set_key {{ $cfg.VtsDefaultFilterKey }};
     {{ end }}
 
     aio                 threads;
@@ -395,47 +385,6 @@ http {
         keepalive 1000;
     }
 
-    {{/* build the maps that will be use to validate the Whitelist */}}
-    {{ range $index, $server := $servers }}
-    {{ range $location := $server.Locations }}
-    {{ $path := buildLocation $location }}
-
-    {{ if isLocationAllowed $location }}
-    {{ if gt (len $location.Whitelist.CIDR) 0 }}
-
-    # Deny for {{ print $server.Hostname  $path }}
-    geo $the_real_ip {{ buildDenyVariable (print $server.Hostname "_"  $path) }} {
-        default 1;
-
-        {{ range $ip := $location.Whitelist.CIDR }}
-        {{ $ip }} 0;{{ end }}
-    }
-    {{ end }}
-    {{ end }}
-    {{ end }}
-    {{ end }}
-
-    {{ range $rl := (filterRateLimits $servers ) }}
-    # Ratelimit {{ $rl.Name }}
-    geo $the_real_ip $whitelist_{{ $rl.ID }} {
-        default 0;
-        {{ range $ip := $rl.Whitelist }}
-        {{ $ip }} 1;{{ end }}
-    }
-
-    # Ratelimit {{ $rl.Name }}
-    map $whitelist_{{ $rl.ID }} $limit_{{ $rl.ID }} {
-        0 {{ $cfg.LimitConnZoneVariable }};
-        1 "";
-    }
-    {{ end }}
-
-    {{/* build all the required rate limit zones. Each annotation requires a dedicated zone */}}
-    {{/* 1MB -> 16 thousand 64-byte states or about 8 thousand 128-byte states */}}
-    {{ range $zone := (buildRateLimitZones $servers) }}
-    {{ $zone }}
-    {{ end }}
-
     {{/* Build server redirects (from/to www) */}}
     {{ range $hostname, $to := .RedirectServers }}
     server {
@@ -576,8 +525,8 @@ http {
             set $proxy_upstream_name "internal";
 
             {{ if $cfg.EnableVtsStatus }}
-            vhost_traffic_status_display;
-            vhost_traffic_status_display_format html;
+            #vhost_traffic_status_display;
+            #vhost_traffic_status_display_format html;
             {{ else }}
             access_log off;
             stub_status on;
