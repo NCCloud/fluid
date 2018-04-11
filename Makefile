@@ -12,9 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-.PHONY: all
-all: all-container
-
 BUILDTAGS=
 
 # Use the 0.0 tag for testing, it shouldn't clobber any release builds
@@ -54,18 +51,18 @@ DOCKERFILE := $(TEMP_DIR)/rootfs/Dockerfile
 image-info:
 	echo -n '{"image":"$(IMAGE)","tag":"$(TAG)"}'
 
+.PHONY: build-container
+build-container:
+	$(MAKE) build container
+
 .PHONY: container
 container:
 	cp -RP ./* $(TEMP_DIR)
 	$(DOCKER) build -t $(IMAGE):$(TAG) $(TEMP_DIR)/rootfs
 
 .PHONY: push
-push: .push
 push:
 	$(DOCKER) push $(IMAGE):$(TAG)
-ifeq ($(ARCH), amd64)
-	$(DOCKER) push $(IMAGE):$(TAG)
-endif
 
 .PHONY: clean
 clean:
@@ -90,7 +87,7 @@ test:
 	@go test -v -race -tags "$(BUILDTAGS) cgo" $(shell go list ${PKG}/... | grep -v vendor | grep -v '/test/e2e')
 
 .PHONY: e2e-image
-e2e-image: sub-container
+e2e-image: build-container
 	TAG=$(TAG) IMAGE=$(IMAGE) docker tag $(IMAGE):$(TAG) $(IMAGE):test
 	docker images
 

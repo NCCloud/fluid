@@ -26,5 +26,5 @@ if docker_tag_exists "NCCloud/fluid" $(echo $IMAGE | jq .tag); then
 fi
 
 echo "building Fluid image..."
-TAG=$TRAVIS_TAG make -C $DIR/../ container
+TAG=$TRAVIS_TAG make -C $DIR/../ build-container
 TAG=$TRAVIS_TAG make -C $DIR/../ push
