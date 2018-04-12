@@ -28,7 +28,7 @@ The table below summarizes the key difference between nginxinc/kubernetes-ingres
 | --- | --- | --- | --- | --- |
 | **Fundamental** |
 | Authors | Namecheap community | Kubernetes community | NGINX Inc and community |  NGINX Inc and community |
-| NGINX version | [Custom](https://github.com/kubernetes/ingress-nginx/tree/master/images/nginx) NGINX build that includes several third-party modules | [Custom](https://github.com/kubernetes/ingress-nginx/tree/master/images/nginx) NGINX build that includes several third-party modules | NGINX official mainline [build](https://github.com/nginxinc/docker-nginx) | NGINX Plus |
+| Server | [OpenResty](https://github.com/openresty/docker-openresty/tree/master/alpine) build based on Alpine image | [Custom](https://github.com/kubernetes/ingress-nginx/tree/master/images/nginx) NGINX build that includes several third-party modules | NGINX official mainline [build](https://github.com/nginxinc/docker-nginx) | NGINX Plus |
 | Commercial support | N/A | N/A | N/A | Included |
 | **Load balancing configuration** |
 | Merging Ingress rules with the same host | Supported | Supported | Under consideration | Under consideration |
