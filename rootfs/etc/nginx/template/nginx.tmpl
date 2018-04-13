@@ -7,10 +7,6 @@
 {{ $proxyHeaders := .ProxySetHeaders }}
 {{ $addHeaders := .AddHeaders }}
 
-{{ if $cfg.EnableModsecurity }}
-load_module /etc/nginx/modules/ngx_http_modsecurity_module.so;
-{{ end }}
-
 {{ buildOpentracingLoad $cfg }}
 
 daemon off;
@@ -38,8 +34,7 @@ events {
 http {
     lua_package_cpath "/usr/local/openresty/lualib/?.so;;";
     lua_package_path "/etc/nginx/lua/?.lua;/usr/local/openresty/lualib/?.lua;;";
-
-    lua_shared_dict first_config_load 12k;
+    
     lua_shared_dict configuration_data 1024M;
     lua_shared_dict round_robin_state 128M;
     lua_shared_dict chash_state 128M;
@@ -67,7 +62,7 @@ http {
           balancer = res
         end
     }
-
+    
     init_worker_by_lua_block {
         balancer.init_worker()
     }
@@ -85,7 +80,7 @@ http {
     {{ end }}
 
     {{ if $cfg.EnableVtsStatus }}
-    #vhost_traffic_status_zone shared:vhost_traffic_status:{{ $cfg.VtsStatusZoneSize }};
+    vhost_traffic_status_zone shared:vhost_traffic_status:{{ $cfg.VtsStatusZoneSize }};
     #vhost_traffic_status_filter_by_set_key {{ $cfg.VtsDefaultFilterKey }};
     {{ end }}
 
@@ -418,6 +413,11 @@ http {
         ## start server vhosts
     server {
         server_name _;
+
+        {{ if $cfg.EnableVtsStatus }}
+            vhost_traffic_status_filter_by_host on;
+        {{ end }}
+
         {{ range $address := $all.Cfg.BindAddressIpv4 }}
         listen {{ $address }}:{{ $all.ListenPorts.HTTP }}{{ if $all.Cfg.UseProxyProtocol }} proxy_protocol{{ end }};
         {{ else }}
@@ -459,6 +459,11 @@ http {
         {{ end }}
 
                 location / {
+                    set $proxy_upstream_name "placeholder-upstream";
+                    set $namespace      "";
+                    set $ingress_name   "";
+                    set $service_name   "";
+
                     proxy_intercept_errors off;
                     
                     proxy_set_header ssl-client-cert        "";
@@ -524,11 +529,13 @@ http {
         location /nginx_status {
             set $proxy_upstream_name "internal";
 
-            {{ if $cfg.EnableVtsStatus }}
-            #vhost_traffic_status_display;
-            #vhost_traffic_status_display_format html;
-            {{ else }}
             access_log off;
+
+            {{ if $cfg.EnableVtsStatus }}
+            vhost_traffic_status_display;
+            vhost_traffic_status_display_format html;
+
+            {{ else }}
             stub_status on;
             {{ end }}
         }
