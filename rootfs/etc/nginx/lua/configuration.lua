@@ -1,5 +1,3 @@
--- this is the Lua representation of Configuration struct in internal/ingress/types.go
-local first_config_load = ngx.shared.first_config_load
 local configuration_data = ngx.shared.configuration_data
 
 local _M = {}
@@ -67,23 +65,12 @@ function _M.call()
     return
   end
 
-  local fcl = first_config_load:get("ok")
-  if fcl ~= nil then
-    first_config_load:set("ok", true)
-  end
-  if fcl ~= true then
-    first_config_load:set("ok", true)
-  end
-
   ngx.status = ngx.HTTP_CREATED
 end
 
 function _M.check()
-  local fcl = first_config_load:get("ok")
+  local fcl = configuration_data:get("config_check_code")
   if fcl == nil then
-    ngx.log(ngx.INFO, "Healty check Code: 503")
-    ngx.status = 503
-  elseif fcl ~= true then
     ngx.log(ngx.INFO, "Healty check Code: 503")
     ngx.status = 503
   else
