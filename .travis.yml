@@ -35,20 +35,23 @@ env:
 
 jobs:
   include:
-  - stage: Static Check 
+  - stage: Static Check
+    if: NOT tag IS present
     script: 
     - sudo luarocks install luacheck 
     - make luacheck 
     - go get github.com/golang/lint/golint 
     - go get -u github.com/jteeuwen/go-bindata/... 
     - make verify-all 
-  - stage: Coverage 
+  - stage: Coverage
+    if: NOT tag IS present
     before_script:
     - test/e2e/up.sh 
     script:
     - if ! go get github.com/jteeuwen/go-bindata/...; then github.com/jteeuwen/go-bindata/...;fi
     - make cover 
-  - stage: e2e 
+  - stage: e2e
+    if: NOT tag IS present
     before_script: 
     - if ! go get github.com/jteeuwen/go-bindata/...; then github.com/jteeuwen/go-bindata/...;fi 
     - make e2e-image 
