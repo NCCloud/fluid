@@ -459,7 +459,7 @@ http {
         {{ end }}
 
                 location / {
-                    set $proxy_upstream_name "placeholder-upstream";
+                    set $proxy_upstream_name "-";
                     set $namespace      "";
                     set $ingress_name   "";
                     set $service_name   "";

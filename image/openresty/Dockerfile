@@ -55,6 +55,7 @@ RUN wget -O nginx-module-stream-sts-master.zip https://github.com/vozlt/nginx-mo
   && unzip nginx-module-stream-sts-master.zip
 
 RUN apk add --no-cache --virtual .build-deps \
+        bash \
         build-base \
         curl \
         gd-dev \
