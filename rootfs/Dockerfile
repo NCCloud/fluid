@@ -1,4 +1,4 @@
-FROM quay.io/easywp/openresty-base:1.0.0
+FROM quay.io/easywp/openresty-base:1.0
 
 LABEL maintainer="Valeriano Manassero <https://github.com/valeriano-manassero>"
 
