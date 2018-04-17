@@ -168,7 +168,7 @@ func etcNginxTemplateNginxTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/template/nginx.tmpl", size: 26118, mode: os.FileMode(420), modTime: time.Unix(1523950445, 0)}
+	info := bindataFileInfo{name: "etc/nginx/template/nginx.tmpl", size: 26118, mode: os.FileMode(420), modTime: time.Unix(1523952393, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
