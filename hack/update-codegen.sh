@@ -26,11 +26,11 @@ CODEGEN_PKG=${CODEGEN_PKG:-$(cd ${SCRIPT_ROOT}; ls -d -1 ./vendor/k8s.io/code-ge
 #                  k8s.io/kubernetes. The output-base is needed for the generators to output into the vendor dir
 #                  instead of the $GOPATH directly. For normal projects this can be dropped.
 #${CODEGEN_PKG}/generate-groups.sh "deepcopy,client,informer,lister" \
-#  k8s.io/ingress-nginx/pkg/client k8s.io/ingress-nginx/pkg/apis \
+#  github.com/NCCloud/fluid/pkg/client github.com/NCCloud/fluid/pkg/apis \
 #  nginxingress:v1alpha1 \
 #  --output-base "$(dirname ${BASH_SOURCE})/../../.."
 
 ${CODEGEN_PKG}/generate-groups.sh "deepcopy" \
-  k8s.io/ingress-nginx/internal k8s.io/ingress-nginx/internal \
+  github.com/NCCloud/fluid/internal github.com/NCCloud/fluid/internal \
   .:ingress \
   --output-base "$(dirname ${BASH_SOURCE})/../../.."

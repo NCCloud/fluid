@@ -40,7 +40,6 @@ import (
 	"github.com/NCCloud/fluid/internal/ingress/annotations/proxy"
 	ngx_config "github.com/NCCloud/fluid/internal/ingress/controller/config"
 	"github.com/NCCloud/fluid/internal/k8s"
-	"github.com/NCCloud/fluid/internal/task"
 )
 
 const (
@@ -110,19 +109,11 @@ func (n NGINXController) GetPublishService() *apiv1.Service {
 // sync collects all the pieces required to assemble the configuration file and
 // then sends the content to the backend (OnUpdate) receiving the populated
 // template as response reloading the backend if is required.
-func (n *NGINXController) syncIngress(item interface{}) error {
+func (n *NGINXController) syncIngress(interface{}) error {
 	n.syncRateLimiter.Accept()
 
 	if n.syncQueue.IsShuttingDown() {
 		return nil
-	}
-
-	if element, ok := item.(task.Element); ok {
-		if name, ok := element.Key.(string); ok {
-			if ing, err := n.store.GetIngress(name); err == nil {
-				n.store.ReadSecrets(ing)
-			}
-		}
 	}
 
 	// Sort ingress rules using the ResourceVersion field
@@ -853,7 +844,7 @@ func (n *NGINXController) createServers(data []*extensions.Ingress,
 
 	// Tries to fetch the default Certificate from nginx configuration.
 	// If it does not exists, use the ones generated on Start()
-	defaultCertificate, err := n.store.GetLocalSecret(n.cfg.DefaultSSLCertificate)
+	defaultCertificate, err := n.store.GetLocalSSLCert(n.cfg.DefaultSSLCertificate)
 	if err == nil {
 		defaultPemFileName = defaultCertificate.PemFileName
 		defaultPemSHA = defaultCertificate.PemSHA
@@ -1021,7 +1012,7 @@ func (n *NGINXController) createServers(data []*extensions.Ingress,
 			}
 
 			key := fmt.Sprintf("%v/%v", ing.Namespace, tlsSecretName)
-			cert, err := n.store.GetLocalSecret(key)
+			cert, err := n.store.GetLocalSSLCert(key)
 			if err != nil {
 				glog.Warningf("ssl certificate \"%v\" does not exist in local store", key)
 				continue
