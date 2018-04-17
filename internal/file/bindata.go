@@ -88,7 +88,7 @@ func etcNginxLuaBalancerLua() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/lua/balancer.lua", size: 10218, mode: os.FileMode(420), modTime: time.Unix(1523948423, 0)}
+	info := bindataFileInfo{name: "etc/nginx/lua/balancer.lua", size: 10218, mode: os.FileMode(420), modTime: time.Unix(1523950417, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -108,7 +108,7 @@ func etcNginxLuaConfigurationLua() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/lua/configuration.lua", size: 2155, mode: os.FileMode(420), modTime: time.Unix(1523948423, 0)}
+	info := bindataFileInfo{name: "etc/nginx/lua/configuration.lua", size: 2155, mode: os.FileMode(420), modTime: time.Unix(1523950417, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -128,7 +128,7 @@ func etcNginxMimeTypes() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/mime.types", size: 5169, mode: os.FileMode(420), modTime: time.Unix(1523948423, 0)}
+	info := bindataFileInfo{name: "etc/nginx/mime.types", size: 5169, mode: os.FileMode(420), modTime: time.Unix(1523950417, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -148,7 +148,7 @@ func etcNginxNginxConf() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/nginx.conf", size: 119, mode: os.FileMode(420), modTime: time.Unix(1521804149, 0)}
+	info := bindataFileInfo{name: "etc/nginx/nginx.conf", size: 119, mode: os.FileMode(420), modTime: time.Unix(1523950417, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -168,7 +168,7 @@ func etcNginxTemplateNginxTmpl() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "etc/nginx/template/nginx.tmpl", size: 26118, mode: os.FileMode(420), modTime: time.Unix(1523949518, 0)}
+	info := bindataFileInfo{name: "etc/nginx/template/nginx.tmpl", size: 26118, mode: os.FileMode(420), modTime: time.Unix(1523950445, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -188,7 +188,7 @@ func ingressControllerCleanNginxConfSh() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "ingress-controller/clean-nginx-conf.sh", size: 899, mode: os.FileMode(493), modTime: time.Unix(1523948423, 0)}
+	info := bindataFileInfo{name: "ingress-controller/clean-nginx-conf.sh", size: 899, mode: os.FileMode(493), modTime: time.Unix(1523950417, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
