@@ -120,10 +120,10 @@ func parseFlags() (bool, *controller.Configuration, error) {
 
 		annotationsPrefix = flags.String("annotations-prefix", "nginx.ingress.kubernetes.io", `Prefix of the ingress annotations.`)
 
-		enableSSLChainCompletion = flags.Bool("enable-ssl-chain-completion", true,
+		enableSSLChainCompletion = flags.Bool("enable-ssl-chain-completion", false,
 			`Defines if the nginx ingress controller should check the secrets for missing intermediate CA certificates.
 		If the certificate contain issues chain issues is not possible to enable OCSP.
-		Default is true.`)
+		Default is false.`)
 
 		syncRateLimit = flags.Float32("sync-rate-limit", 0.3,
 			`Define the sync frequency upper limit`)
