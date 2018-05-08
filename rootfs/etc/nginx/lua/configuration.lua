@@ -25,7 +25,6 @@ end
 
 function _M.get_config_check_code()
     return configuration_data:get("config_check_code")
-    
 end
 
 function _M.call()

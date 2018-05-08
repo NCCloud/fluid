@@ -62,7 +62,7 @@ local function sync_config()
         local new_servers = new_config.servers
         local new_backends = new_config.backends
 
-        backend_keys = backends:get_keys(0)
+        local backend_keys = backends:get_keys(0)
         for _, bk in pairs(backend_keys) do
             local found = false
             for _, new_backend in pairs(new_backends) do
@@ -71,12 +71,12 @@ local function sync_config()
                 end
             end
             if found == false then
-                n_backends:delete(bk)
-                ngx.log(ngx.INFO, "backend deletion completed for: " .. sk)
+                backends:delete(bk)
+                ngx.log(ngx.INFO, "backend deletion completed for: " .. bk)
             end
         end
 
-        server_keys = servers:get_keys(0)
+        local server_keys = servers:get_keys(0)
         for _, sk in pairs(server_keys) do
             local found = false
             for _, new_server in pairs(new_servers) do
@@ -85,7 +85,7 @@ local function sync_config()
                 end
             end
             if found == false then
-                n_servers:delete(sk)
+                servers:delete(sk)
                 ngx.log(ngx.INFO, "server deletion completed for: " .. sk)
             end
         end
@@ -112,7 +112,8 @@ local function load_ctx()
         if ngx.ctx.server == nil then
             ngx.ctx.server = servers:get(http_host)
             if (ngx.ctx.server == nil) then
-                ngx.log(ngx.WARN, "Unable to get virtualhost name [" .. http_host .. "] from ctx cache -> fallback to [_]")
+                ngx.log(ngx.WARN, "Unable to get virtualhost name [" .. http_host
+                        .. "] from ctx cache -> fallback to [_]")
                 ngx.ctx.server = servers:get("_")
                 if (ngx.ctx.server == nil) then
                     ngx.log(ngx.ERR, "Unable to get virtualhost name from ctx cache")
@@ -127,13 +128,15 @@ local function load_ctx()
             local hit_length = 0
             for k, v in pairs(ngx.ctx.server.locations) do
                 local path = v.path
-                ngx.log(ngx.INFO, "Checking request: " ..    tostring(request_uri) .. " against path: " .. tostring(path))
+                ngx.log(ngx.INFO, "Checking request: " ..    tostring(request_uri) .. " against path: "
+                        .. tostring(path))
                 local path_length = string.len(v.path)
                 if string.sub(request_uri, 1, path_length) == path then
                     if path_length > hit_length then
                         hit_length = path_length
                         ngx.ctx.location = ngx.ctx.server.locations[k]
-                        ngx.log(ngx.INFO, "Path MATCH: " .. tostring(path) .. " for backend:" .. tostring(ngx.ctx.location.backend))
+                        ngx.log(ngx.INFO, "Path MATCH: " .. tostring(path) .. " for backend:"
+                                .. tostring(ngx.ctx.location.backend))
                     end
                 end
             end
@@ -158,9 +161,10 @@ function _M.rewrite()
     local scheme = ngx.var.scheme
     local redirect_to_https = ngx.var.redirect_to_https
     if scheme == 'http' then
-        ngx.log(ngx.INFO, "SSL Redirect configs: forceSSLRedirect=" ..    tostring(ngx.ctx.location.rewrite.forceSSLRedirect))
-        ngx.log(ngx.INFO, "SSL Redirect configs: sslCertificateReal=" ..    tostring(ngx.ctx.server.sslCertificateReal))
-        ngx.log(ngx.INFO, "SSL Redirect configs: sslRedirect=" ..    tostring(ngx.ctx.location.rewrite.sslRedirect))
+        ngx.log(ngx.INFO, "SSL Redirect configs: forceSSLRedirect=" ..
+                tostring(ngx.ctx.location.rewrite.forceSSLRedirect))
+        ngx.log(ngx.INFO, "SSL Redirect configs: sslCertificateReal=" .. tostring(ngx.ctx.server.sslCertificateReal))
+        ngx.log(ngx.INFO, "SSL Redirect configs: sslRedirect=" .. tostring(ngx.ctx.location.rewrite.sslRedirect))
         if ngx.ctx.location.rewrite.forceSSLRedirect or
         (ngx.ctx.server.sslCertificateReal ~= "" and ngx.ctx.location.rewrite.sslRedirect) then
             if redirect_to_https == "1" then
@@ -262,7 +266,8 @@ function _M.balance(lb_alg)
                 ngx.log(ngx.INFO, "Balancer pointer cached, with id: " .. tostring(ep_index))
                 endpoint = backend.endpoints[ep_index]
                 if endpoint == nil then
-                    ngx.log(ngx.INFO, "Balancer pointer cached id: " .. tostring(ep_index) .. " INVALID, regenerating cache id")
+                    ngx.log(ngx.INFO, "Balancer pointer cached id: " .. tostring(ep_index)
+                            .. " INVALID, regenerating cache id")
                     local free_endpoint_id = math.random(#backend.endpoints)
                     endpoint = backend.endpoints[free_endpoint_id]
                 else
