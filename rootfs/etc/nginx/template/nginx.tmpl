@@ -569,7 +569,7 @@ stream {
     {{ if $cfg.DisableAccessLog }}
     access_log off;
     {{ else }}
-    access_log /usr/local/openresty/nginx/logs/error.log log_stream;
+    access_log /usr/local/openresty/nginx/logs/access.log log_stream;
     {{ end }}
 
     error_log  /usr/local/openresty/nginx/logs/error.log;
