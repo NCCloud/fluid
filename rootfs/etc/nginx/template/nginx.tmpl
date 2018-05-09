@@ -176,14 +176,14 @@ http {
     {{ if $cfg.EnableSyslog }}
     access_log syslog:server={{ $cfg.SyslogHost }}:{{ $cfg.SyslogPort }} upstreaminfo if=$loggable;
     {{ else }}
-    access_log {{ $cfg.AccessLogPath }} upstreaminfo if=$loggable;
+    access_log /usr/local/openresty/nginx/logs/access.log upstreaminfo if=$loggable;
     {{ end }}
     {{ end }}
 
     {{ if $cfg.EnableSyslog }}
     error_log syslog:server={{ $cfg.SyslogHost }}:{{ $cfg.SyslogPort }} {{ $cfg.ErrorLogLevel }};
     {{ else }}
-    error_log  {{ $cfg.ErrorLogPath }} {{ $cfg.ErrorLogLevel }};
+    error_log  /usr/local/openresty/nginx/logs/error.log {{ $cfg.ErrorLogLevel }};
     {{ end }}
 
     {{ buildResolvers $cfg.Resolver $cfg.DisableIpv6DNS }}
@@ -569,10 +569,10 @@ stream {
     {{ if $cfg.DisableAccessLog }}
     access_log off;
     {{ else }}
-    access_log {{ $cfg.AccessLogPath }} log_stream;
+    access_log /usr/local/openresty/nginx/logs/access.log log_stream;
     {{ end }}
 
-    error_log  {{ $cfg.ErrorLogPath }};
+    error_log  /usr/local/openresty/nginx/logs/error.log;
 
     # TCP services
     {{ range $i, $tcpServer := .TCPBackends }}
