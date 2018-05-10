@@ -5,14 +5,28 @@ local configuration = require("configuration")
 local lrucache = require("resty.lrucache")
 local resty_lock = require("resty.lock")
 
+local static_configs = ngx.shared.static_configs
+
+local lru_cache_config_sync_interval = static_configs:get("lru_cache_config_sync_interval")
+if lru_cache_config_sync_interval == nil then
+    return error("No lru_cache_config_sync_interval parameter specified")
+end
+local lru_cache_size = static_configs:get("lru_cache_size")
+if lru_cache_size == nil then
+    return error("No lru_cache_size parameter specified")
+end
+local lru_cache_state_timeout = static_configs:get("lru_cache_state_timeout")
+if lru_cache_state_timeout == nil then
+    return error("No lru_cache_state_timeout parameter specified")
+end
 
 -- measured in seconds
 -- for an Nginx worker to pick up the new list of configs
 -- it will take <the delay until controller POSTed the backend object to the Nginx endpoint> + CONFIG_SYNC_INTERVAL
-local CONFIG_SYNC_INTERVAL = 1
+local CONFIG_SYNC_INTERVAL = lru_cache_config_sync_interval
 
-local LRUCACHE_SIZE = 1024000
-local STATE_TIMEOUT = 600
+local LRUCACHE_SIZE = lru_cache_size
+local STATE_TIMEOUT = lru_cache_state_timeout
 
 local ROUND_ROBIN_LOCK_KEY = "round_robin"
 local CHASH_LOCK_KEY = "chash"
@@ -55,50 +69,31 @@ local function sync_config()
 
         local ok, new_config = pcall(json.decode, config_data)
         if not ok then
-            ngx.log(ngx.ERR,    "could not parse config data: " .. tostring(new_config))
+            ngx.log(ngx.ERR, "could not parse config data: " .. tostring(new_config))
             return
         end
 
-        local new_servers = new_config.servers
+        local n_backends, n_backends_err = lrucache.new(LRUCACHE_SIZE)
+        if not backends then
+            return error("failed to create the temporary cache for backends: " .. (n_backends_err or "unknown"))
+        end
         local new_backends = new_config.backends
-
-        local backend_keys = backends:get_keys(0)
-        for _, bk in pairs(backend_keys) do
-            local found = false
-            for _, new_backend in pairs(new_backends) do
-                if new_backend.name == bk then
-                    found = true
-                end
-            end
-            if found == false then
-                backends:delete(bk)
-                ngx.log(ngx.INFO, "backend deletion completed for: " .. bk)
-            end
-        end
-
-        local server_keys = servers:get_keys(0)
-        for _, sk in pairs(server_keys) do
-            local found = false
-            for _, new_server in pairs(new_servers) do
-                if new_server.hostname == sk then
-                    found = true
-                end
-            end
-            if found == false then
-                servers:delete(sk)
-                ngx.log(ngx.INFO, "server deletion completed for: " .. sk)
-            end
-        end
-
-        for _, new_server in pairs(new_servers) do
-            ngx.log(ngx.INFO, "server syncronization completed for: " .. new_server.hostname)
-            servers:set(new_server.hostname, new_server)
-        end
-
         for _, new_backend in pairs(new_backends) do
             ngx.log(ngx.INFO, "backend syncronization completed for: " .. new_backend.name)
-            backends:set(new_backend.name, new_backend)
+            n_backends:set(new_backend.name, new_backend)
         end
+        backends = n_backends
+
+        local n_servers, n_servers_err = lrucache.new(LRUCACHE_SIZE)
+        if not servers then
+            return error("failed to create the temporary cache for servers: " .. (n_servers_err or "unknown"))
+        end
+        local new_servers = new_config.servers
+        for _, new_server in pairs(new_servers) do
+            ngx.log(ngx.INFO, "server syncronization completed for: " .. new_server.hostname)
+            n_servers:set(new_server.hostname, new_server)
+        end
+        servers = n_servers
 
         config_check_code_cache = config_check_code
     end
