@@ -5,14 +5,28 @@ local configuration = require("configuration")
 local lrucache = require("resty.lrucache")
 local resty_lock = require("resty.lock")
 
+local static_configs = ngx.shared.static_configs
+
+local lru_cache_config_sync_interval = static_configs:get("lru_cache_config_sync_interval")
+if lru_cache_config_sync_interval == nil then
+    return error("No lru_cache_config_sync_interval parameter specified")
+end
+local lru_cache_size = static_configs:get("lru_cache_size")
+if lru_cache_size == nil then
+    return error("No lru_cache_size parameter specified")
+end
+local lru_cache_state_timeout = static_configs:get("lru_cache_state_timeout")
+if lru_cache_state_timeout == nil then
+    return error("No lru_cache_state_timeout parameter specified")
+end
 
 -- measured in seconds
 -- for an Nginx worker to pick up the new list of configs
 -- it will take <the delay until controller POSTed the backend object to the Nginx endpoint> + CONFIG_SYNC_INTERVAL
-local CONFIG_SYNC_INTERVAL = 1
+local CONFIG_SYNC_INTERVAL = lru_cache_config_sync_interval
 
-local LRUCACHE_SIZE = 1024000
-local STATE_TIMEOUT = 600
+local LRUCACHE_SIZE = lru_cache_size
+local STATE_TIMEOUT = lru_cache_state_timeout
 
 local ROUND_ROBIN_LOCK_KEY = "round_robin"
 local CHASH_LOCK_KEY = "chash"
