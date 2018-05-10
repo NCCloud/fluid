@@ -97,6 +97,3 @@ RUN apk add --no-cache --virtual .build-deps \
     && ln -sf /dev/stderr /usr/local/openresty/nginx/logs/error.log
 
 ENV PATH=$PATH:/usr/local/openresty/luajit/bin:/usr/local/openresty/nginx/sbin:/usr/local/openresty/bin
-
-COPY ./mods/lrucache.lua /usr/local/openresty/lualib/resty/lrucache.lua
-COPY ./mods/pureffi.lua /usr/local/openresty/lualib/resty/lrucache/pureffi.lua
