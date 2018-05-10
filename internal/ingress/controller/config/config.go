@@ -222,15 +222,15 @@ type Configuration struct {
 
 	// LruCacheConfigSyncInterval sets the interval (in seconds) of config syncronizing on the worker processes
 	// Default: 1
-	LruCacheConfigSyncInterval int`json:"lru-cache-config-sync-interval"`
+	LruCacheConfigSyncInterval int `json:"lru-cache-config-sync-interval"`
 
 	// LruCacheSize sets the configuration worker LRU Cache maximum size (in number of elements)
 	// Default: 1024000
-	LruCacheSize int`json:"lru-cache-size"`
+	LruCacheSize int `json:"lru-cache-size"`
 
 	// LruCacheStateTimeout sets the State worker LRU Cache purge element timespan (in seconds)
 	// Default: 600
-	LruCacheStateTimeout int`json:"lru-cache-state-timeout"`
+	LruCacheStateTimeout int `json:"lru-cache-state-timeout"`
 
 	// Enable json escaping
 	// http://nginx.org/en/docs/http/ngx_http_log_module.html#log_format
