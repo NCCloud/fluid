@@ -73,6 +73,17 @@ local function sync_config()
             return
         end
 
+        local n_servers, n_servers_err = lrucache.new(LRUCACHE_SIZE)
+        if not servers then
+            return error("failed to create the temporary cache for servers: " .. (n_servers_err or "unknown"))
+        end
+        local new_servers = new_config.servers
+        for _, new_server in pairs(new_servers) do
+            ngx.log(ngx.INFO, "server syncronization completed for: " .. new_server.hostname)
+            n_servers:set(new_server.hostname, new_server)
+        end
+        servers = n_servers
+
         local n_backends, n_backends_err = lrucache.new(LRUCACHE_SIZE)
         if not backends then
             return error("failed to create the temporary cache for backends: " .. (n_backends_err or "unknown"))
@@ -84,16 +95,8 @@ local function sync_config()
         end
         backends = n_backends
 
-        local n_servers, n_servers_err = lrucache.new(LRUCACHE_SIZE)
-        if not servers then
-            return error("failed to create the temporary cache for servers: " .. (n_servers_err or "unknown"))
-        end
-        local new_servers = new_config.servers
-        for _, new_server in pairs(new_servers) do
-            ngx.log(ngx.INFO, "server syncronization completed for: " .. new_server.hostname)
-            n_servers:set(new_server.hostname, new_server)
-        end
-        servers = n_servers
+        ngx.log(ngx.INFO, "Flushing Chash table")
+        chash_state:flush_all()
 
         config_check_code_cache = config_check_code
     end
