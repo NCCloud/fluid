@@ -506,6 +506,10 @@ http {
                     client_max_body_size                    "{{ $cfg.ProxyBodySize }}";
                     {{ end }}
 
+                    proxy_connect_timeout                   {{ $cfg.ProxyConnectTimeout }}s;
+                    proxy_send_timeout                      {{ $cfg.ProxySendTimeout }}s;
+                    proxy_read_timeout                      {{ $cfg.ProxyReadTimeout }}s;
+
                     rewrite_by_lua_block {
                         balancer.rewrite()
                     }
