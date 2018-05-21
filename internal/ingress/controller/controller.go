@@ -160,15 +160,11 @@ func (n *NGINXController) syncIngress(interface{}) error {
 		return nil
 	} else if !n.isForceReload() && n.IsDynamicallyConfigurable(&pcfg) {
 		glog.Warningf("BACKEND RECONFIGURATION: Dynamic Reload")
-		var err error
-		for i := 1; i <= 5; i++ {
-			glog.Warningf("BACKEND RECONFIGURATION: Dynamic Reload (attempt: " + strconv.Itoa(i))
-			err := n.ConfigureDynamically(&pcfg)
-			if err == nil {
-				glog.Infof("dynamic reconfiguration succeeded, skipping reload")
-				n.runningConfig = &pcfg
-				return nil
-			}
+		err := n.ConfigureDynamically(&pcfg)
+		if err == nil {
+			glog.Infof("dynamic reconfiguration succeeded, skipping reload")
+			n.runningConfig = &pcfg
+			return nil
 		}
 
 		glog.Warningf("falling back to reload, could not dynamically reconfigure: %v", err)
