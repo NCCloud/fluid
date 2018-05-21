@@ -253,6 +253,14 @@ function _M.balance(lb_alg)
             local pointer_id = remote_addr .. ":" .. ngx.ctx.server.hostname .. ":" .. ngx.ctx.location.path
             ngx.log(ngx.INFO, "CHASH Balancer pointer: " .. pointer_id)
             chash_lock:lock(pointer_id .. CHASH_LOCK_KEY)
+
+            local state, status = ngx_balancer.get_last_failure()
+            if state ~= nil then
+                ngx.log(ngx.INFO, "PEER FAILURE:" .. ngx.ctx.server.hostname .. " -> " .. state .. " (" .. status ..
+                        ") retrying")
+                chash_state:delete(pointer_id)
+            end
+
             local ep_index = chash_state:get(pointer_id)
             local endpoint
             if ep_index == nil then
