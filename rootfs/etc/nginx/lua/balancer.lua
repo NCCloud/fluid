@@ -104,7 +104,7 @@ end
 
 local function load_ctx()
     local http_host = ngx.var.host
-    ngx.log(ngx.WARN, "Virtualhost requested: [" .. http_host .. "]")
+    ngx.log(ngx.INFO, "Virtualhost requested: [" .. http_host .. "]")
     local request_uri = ngx.var.request_uri
     if http_host ~= nil then
         if ngx.ctx.server == nil then
