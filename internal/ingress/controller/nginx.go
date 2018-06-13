@@ -70,8 +70,8 @@ const (
 )
 
 var (
-	tmplPath    = "/etc/nginx/template/nginx.tmpl"
-	geoipPath   = "/etc/nginx/geoip"
+	tmplPath  = "/etc/nginx/template/nginx.tmpl"
+	geoipPath = "/etc/nginx/geoip"
 )
 
 // NewNGINXController creates a new NGINX Ingress controller.
