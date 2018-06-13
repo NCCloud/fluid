@@ -39,7 +39,9 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/NCCloud/fluid/internal/file"
+	"github.com/NCCloud/fluid/internal/ingress/annotations/class"
 	"github.com/NCCloud/fluid/internal/ingress/controller"
+	"github.com/NCCloud/fluid/internal/ingress/metric/collector"
 	"github.com/NCCloud/fluid/internal/k8s"
 	"github.com/NCCloud/fluid/internal/net/ssl"
 	"github.com/NCCloud/fluid/version"
@@ -137,6 +139,17 @@ func main() {
 
 	mux := http.NewServeMux()
 	go registerHandlers(conf.EnableProfiling, conf.ListenPorts.Health, ngx, mux)
+
+	err = collector.InitNGINXStatusCollector(conf.Namespace, class.IngressClass, conf.ListenPorts.Status)
+
+	if err != nil {
+		glog.Fatalf("Error generating metric collector:  %v", err)
+	}
+	err = collector.InitUDPCollector(conf.Namespace, class.IngressClass, 8000)
+
+	if err != nil {
+		glog.Fatalf("Error generating UDP collector:  %v", err)
+	}
 
 	ngx.Start()
 }
