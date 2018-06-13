@@ -67,6 +67,13 @@ http {
         else
           balancer = res
         end
+
+        ok, res = pcall(require, "monitor")
+        if not ok then
+          error("require failed: " .. tostring(res))
+        else
+          monitor = res
+        end
     }
     
     init_worker_by_lua_block {
