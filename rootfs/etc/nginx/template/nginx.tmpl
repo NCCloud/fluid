@@ -156,8 +156,11 @@ http {
     {{ range $k, $v := $addHeaders }}
     add_header {{ $k }}            "{{ $v }}";
     {{ end }}
-    
-    more_set_headers "Server: Fluid";
+
+    server_tokens {{ if $cfg.ShowServerTokens }}on{{ else }}off{{ end }};
+    {{ if not $cfg.ShowServerTokens }}
+    more_clear_headers Server;
+    {{ end }}
 
     # disable warnings
     uninitialized_variable_warn off;
