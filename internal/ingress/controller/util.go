@@ -23,6 +23,8 @@ import (
 	"k8s.io/kubernetes/pkg/util/sysctl"
 
 	"github.com/NCCloud/fluid/internal/ingress"
+	"os"
+	"os/exec"
 )
 
 // newUpstream creates an upstream without servers.
@@ -63,4 +65,29 @@ func sysctlFSFileMax() int {
 	}
 	glog.V(2).Infof("system fs.file-max=%v", fileMax)
 	return fileMax
+}
+
+const (
+	defBinary = "/usr/local/openresty/bin/openresty"
+	cfgPath   = "/etc/nginx/nginx.conf"
+)
+
+func nginxExecCommand(args ...string) *exec.Cmd {
+	ngx := os.Getenv("NGINX_BINARY")
+	if ngx == "" {
+		ngx = defBinary
+	}
+
+	cmdArgs := []string{"-c", cfgPath}
+	cmdArgs = append(cmdArgs, args...)
+	return exec.Command(ngx, cmdArgs...)
+}
+
+func nginxTestCommand(cfg string) *exec.Cmd {
+	ngx := os.Getenv("NGINX_BINARY")
+	if ngx == "" {
+		ngx = defBinary
+	}
+
+	return exec.Command(ngx, "-c", cfg, "-t")
 }

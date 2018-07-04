@@ -67,6 +67,13 @@ http {
         else
           balancer = res
         end
+
+        ok, res = pcall(require, "monitor")
+        if not ok then
+          error("require failed: " .. tostring(res))
+        else
+          monitor = res
+        end
     }
     
     init_worker_by_lua_block {
@@ -83,10 +90,6 @@ http {
     real_ip_recursive   on;
     {{ range $trusted_ip := $cfg.ProxyRealIPCIDR }}
     set_real_ip_from    {{ $trusted_ip }};
-    {{ end }}
-
-    {{ if $cfg.EnableVtsStatus }}
-    vhost_traffic_status_zone shared:vhost_traffic_status:{{ $cfg.VtsStatusZoneSize }};
     {{ end }}
 
     aio                 threads;
@@ -422,10 +425,6 @@ http {
     server {
         server_name _;
 
-        {{ if $cfg.EnableVtsStatus }}
-            vhost_traffic_status_filter_by_host on;
-        {{ end }}
-
         {{ range $address := $all.Cfg.BindAddressIpv4 }}
         listen {{ $address }}:{{ $all.ListenPorts.HTTP }}{{ if $all.Cfg.UseProxyProtocol }} proxy_protocol{{ end }};
         {{ else }}
@@ -468,9 +467,7 @@ http {
 
                 location / {
                     set $proxy_upstream_name "-";
-                    set $namespace      "";
-                    set $ingress_name   "";
-                    set $service_name   "";
+                    set $location_path  "-";
 
                     proxy_intercept_errors off;
                     
@@ -518,6 +515,12 @@ http {
                     }
 
                     proxy_pass http://upstream_balancer;
+
+                    log_by_lua_block {
+                        monitor.call()
+                    }
+
+
                 }
     }
     ## end server vhosts
@@ -543,13 +546,7 @@ http {
 
             access_log off;
 
-            {{ if $cfg.EnableVtsStatus }}
-            vhost_traffic_status_display;
-            vhost_traffic_status_display_format html;
-
-            {{ else }}
             stub_status on;
-            {{ end }}
         }
 
         location /configuration {
