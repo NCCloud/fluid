@@ -19,25 +19,21 @@ package collector
 import (
 	"encoding/json"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type udpData struct {
+type socketData struct {
 	Host   string `json:"host"`   // Label
 	Status string `json:"status"` // Label
-
-	RealIPAddress string `json:"realIpAddr"` // Label
-	RemoteAddress string `json:"remoteAddr"` // Label
-	RemoteUser    string `json:"remoteUser"` // Label
 
 	BytesSent float64 `json:"bytesSent"` // Metric
 
 	Protocol string `json:"protocol"` // Label
 	Method   string `json:"method"`   // Label
-	URI      string `json:"uri"`      // Label
 
 	RequestLength float64 `json:"requestLength"` // Metric
 	RequestTime   float64 `json:"requestTime"`   // Metric
@@ -50,10 +46,11 @@ type udpData struct {
 	Namespace string `json:"namespace"` // Label
 	Ingress   string `json:"ingress"`   // Label
 	Service   string `json:"service"`   // Label
+	Path      string `json:"path"`      // Label
 }
 
-// UDPCollector stores prometheus metrics and ingress meta-data
-type UDPCollector struct {
+// SocketCollector stores prometheus metrics and ingress meta-data
+type SocketCollector struct {
 	upstreamResponseTime *prometheus.HistogramVec
 	requestTime          *prometheus.HistogramVec
 	requestLength        *prometheus.HistogramVec
@@ -61,18 +58,18 @@ type UDPCollector struct {
 	collectorSuccess     *prometheus.GaugeVec
 	collectorSuccessTime *prometheus.GaugeVec
 	requests             *prometheus.CounterVec
-	listener             *net.UDPConn
+	listener             net.Listener
 	ns                   string
 	ingressClass         string
-	port                 int
 }
 
-// InitUDPCollector creates a new UDPCollector instance
-func InitUDPCollector(ns string, class string, port int) error {
-	sc := UDPCollector{}
+// NewInstance creates a new SocketCollector instance
+func NewInstance(ns string, class string) error {
+	sc := SocketCollector{}
 
-	listener, err := newUDPListener(port)
+	ns = strings.Replace(ns, "-", "_", -1)
 
+	listener, err := net.Listen("unix", "/tmp/prometheus-nginx.socket")
 	if err != nil {
 		return err
 	}
@@ -80,9 +77,8 @@ func InitUDPCollector(ns string, class string, port int) error {
 	sc.listener = listener
 	sc.ns = ns
 	sc.ingressClass = class
-	sc.port = port
 
-	requestTags := []string{"host", "status", "remote_address", "real_ip_address", "remote_user", "protocol", "method", "uri", "upstream_name", "upstream_ip", "upstream_status", "namespace", "ingress", "service"}
+	requestTags := []string{"host", "status", "protocol", "method", "path", "upstream_name", "upstream_ip", "upstream_status", "namespace", "ingress", "service"}
 	collectorTags := []string{"namespace", "ingress_class"}
 
 	sc.upstreamResponseTime = prometheus.NewHistogramVec(
@@ -163,13 +159,13 @@ func InitUDPCollector(ns string, class string, port int) error {
 	return nil
 }
 
-func (sc *UDPCollector) handleMessage(msg []byte) {
+func (sc *SocketCollector) handleMessage(msg []byte) {
 	glog.V(5).Infof("msg: %v", string(msg))
 
 	collectorSuccess := true
 
 	// Unmarshall bytes
-	var stats udpData
+	var stats socketData
 	err := json.Unmarshal(msg, &stats)
 	if err != nil {
 		glog.Errorf("Unexpected error deserializing JSON paylod: %v", err)
@@ -181,12 +177,9 @@ func (sc *UDPCollector) handleMessage(msg []byte) {
 	requestLabels := prometheus.Labels{
 		"host":            stats.Host,
 		"status":          stats.Status,
-		"remote_address":  stats.RemoteAddress,
-		"real_ip_address": stats.RealIPAddress,
-		"remote_user":     stats.RemoteUser,
 		"protocol":        stats.Protocol,
 		"method":          stats.Method,
-		"uri":             stats.URI,
+		"path":            stats.Path,
 		"upstream_name":   stats.UpstreamName,
 		"upstream_ip":     stats.UpstreamIP,
 		"upstream_status": stats.UpstreamStatus,
@@ -268,7 +261,29 @@ func (sc *UDPCollector) handleMessage(msg []byte) {
 	}
 }
 
-// Run adds a message handler to a UDP listener
-func (sc *UDPCollector) Run() {
-	handleMessages(sc.listener, sc.handleMessage)
+// Run listen for connections in the unix socket and spawns a goroutine to process the content
+func (sc *SocketCollector) Run() {
+	for {
+		conn, err := sc.listener.Accept()
+		if err != nil {
+			continue
+		}
+
+		go handleMessages(conn, sc.handleMessage)
+	}
+}
+
+const packetSize = 1024 * 65
+
+// handleMessages process the content received in a network connection
+func handleMessages(conn net.Conn, fn func([]byte)) {
+	defer conn.Close()
+
+	msg := make([]byte, packetSize)
+	s, err := conn.Read(msg[0:])
+	if err != nil {
+		return
+	}
+
+	fn(msg[0:s])
 }

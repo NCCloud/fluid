@@ -50,7 +50,6 @@ import (
 	"github.com/NCCloud/fluid/internal/ingress/annotations/sslpassthrough"
 	"github.com/NCCloud/fluid/internal/ingress/annotations/upstreamhashby"
 	"github.com/NCCloud/fluid/internal/ingress/annotations/upstreamvhost"
-	"github.com/NCCloud/fluid/internal/ingress/annotations/vtsfilterkey"
 	"github.com/NCCloud/fluid/internal/ingress/annotations/xforwardedprefix"
 	"github.com/NCCloud/fluid/internal/ingress/errors"
 	"github.com/NCCloud/fluid/internal/ingress/resolver"
@@ -86,7 +85,6 @@ type Ingress struct {
 	UpstreamHashBy       string
 	LoadBalancing        string
 	UpstreamVhost        string
-	VtsFilterKey         string
 	Whitelist            ipwhitelist.SourceRange
 	XForwardedPrefix     bool
 	SSLCiphers           string
@@ -125,7 +123,6 @@ func NewAnnotationExtractor(cfg resolver.Resolver) Extractor {
 			"UpstreamHashBy":       upstreamhashby.NewParser(cfg),
 			"LoadBalancing":        loadbalancing.NewParser(cfg),
 			"UpstreamVhost":        upstreamvhost.NewParser(cfg),
-			"VtsFilterKey":         vtsfilterkey.NewParser(cfg),
 			"Whitelist":            ipwhitelist.NewParser(cfg),
 			"XForwardedPrefix":     xforwardedprefix.NewParser(cfg),
 			"SSLCiphers":           sslcipher.NewParser(cfg),
