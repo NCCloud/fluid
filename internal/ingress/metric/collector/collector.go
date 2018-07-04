@@ -24,6 +24,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_golang/prometheus"
+	"os"
 )
 
 type socketData struct {
@@ -69,8 +70,12 @@ func NewInstance(ns string, class string) error {
 
 	ns = strings.Replace(ns, "-", "_", -1)
 
-	listener, err := net.Listen("unix", "/tmp/prometheus-nginx.socket")
+	socketPath := "/tmp/prometheus-nginx.socket"
+	listener, err := net.Listen("unix", socketPath)
 	if err != nil {
+		return err
+	}
+	if err := os.Chmod(socketPath, 0777); err != nil {
 		return err
 	}
 

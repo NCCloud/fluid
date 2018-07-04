@@ -514,6 +514,12 @@ http {
                     }
 
                     proxy_pass http://upstream_balancer;
+
+                    log_by_lua_block {
+                        monitor.call()
+                    }
+
+
                 }
     }
     ## end server vhosts

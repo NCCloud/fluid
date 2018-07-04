@@ -1,13 +1,13 @@
-local socket = ngx.socket.udp
+local socket = ngx.socket.tcp
 local cjson = require('cjson')
-local defer = require('defer')
+local defer = require('util.defer')
 local assert = assert
 
 local _M = {}
 
 local function send_data(jsonData)
     local s = assert(socket())
-    assert(s:setpeername("127.0.0.1", 8000))
+    assert(s:connect('unix:/tmp/prometheus-nginx.socket'))
     assert(s:send(jsonData))
     assert(s:close())
 end
@@ -16,13 +16,10 @@ function _M.encode_nginx_stats()
     return cjson.encode({
         host = ngx.var.host or "-",
         status = ngx.var.status or "-",
-        remoteAddr = ngx.var.remote_addr or "-",
-        realIpAddr = ngx.var.realip_remote_addr or "-",
-        remoteUser = ngx.var.remote_user or "-",
         bytesSent = tonumber(ngx.var.bytes_sent) or -1,
         protocol = ngx.var.server_protocol or "-",
         method = ngx.var.request_method or "-",
-        uri = ngx.var.uri or "-",
+        path = ngx.var.location_path or "-",
         requestLength = tonumber(ngx.var.request_length) or -1,
         requestTime = tonumber(ngx.var.request_time) or -1,
         upstreamName = ngx.var.proxy_upstream_name or "-",
