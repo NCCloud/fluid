@@ -44,10 +44,7 @@ type socketData struct {
 	UpstreamResponseTime float64 `json:"upstreamResponseTime"` // Metric
 	UpstreamStatus       string  `json:"upstreamStatus"`       // Label
 
-	Namespace string `json:"namespace"` // Label
-	Ingress   string `json:"ingress"`   // Label
-	Service   string `json:"service"`   // Label
-	Path      string `json:"path"`      // Label
+	Path string `json:"path"` // Label
 }
 
 // SocketCollector stores prometheus metrics and ingress meta-data
@@ -83,70 +80,63 @@ func NewInstance(ns string, class string) error {
 	sc.ns = ns
 	sc.ingressClass = class
 
-	requestTags := []string{"host", "status", "protocol", "method", "path", "upstream_name", "upstream_ip", "upstream_status", "namespace", "ingress", "service"}
-	collectorTags := []string{"namespace", "ingress_class"}
+	requestTags := []string{"host", "status", "protocol", "method", "path", "upstream_name", "upstream_ip", "upstream_status"}
+	collectorTags := []string{}
 
 	sc.upstreamResponseTime = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:      "upstream_response_time_seconds",
-			Help:      "The time spent on receiving the response from the upstream server",
-			Namespace: ns,
+			Name: "upstream_response_time_seconds",
+			Help: "The time spent on receiving the response from the upstream server",
 		},
 		requestTags,
 	)
 
 	sc.requestTime = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:      "request_duration_seconds",
-			Help:      "The request processing time in seconds",
-			Namespace: ns,
+			Name: "request_duration_seconds",
+			Help: "The request processing time in seconds",
 		},
 		requestTags,
 	)
 
 	sc.requestLength = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:      "request_length_bytes",
-			Help:      "The request length (including request line, header, and request body)",
-			Namespace: ns,
-			Buckets:   prometheus.LinearBuckets(10, 10, 10), // 10 buckets, each 10 bytes wide.
+			Name:    "request_length_bytes",
+			Help:    "The request length (including request line, header, and request body)",
+			Buckets: prometheus.LinearBuckets(10, 10, 10), // 10 buckets, each 10 bytes wide.
 		},
 		requestTags,
 	)
 
 	sc.requests = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
-			Name:      "requests",
-			Help:      "The total number of client requests.",
-			Namespace: ns,
+			Name: "requests",
+			Help: "The total number of client requests.",
 		},
 		collectorTags,
 	)
 
 	sc.bytesSent = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
-			Name:      "bytes_sent",
-			Help:      "The the number of bytes sent to a client",
-			Namespace: ns,
-			Buckets:   prometheus.ExponentialBuckets(10, 10, 7), // 7 buckets, exponential factor of 10.
+			Name:    "bytes_sent",
+			Help:    "The the number of bytes sent to a client",
+			Buckets: prometheus.ExponentialBuckets(10, 10, 7), // 7 buckets, exponential factor of 10.
 		},
 		requestTags,
 	)
 
 	sc.collectorSuccess = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:      "collector_last_run_successful",
-			Help:      "Whether the last collector run was successful (success = 1, failure = 0).",
-			Namespace: ns,
+			Name: "collector_last_run_successful",
+			Help: "Whether the last collector run was successful (success = 1, failure = 0).",
 		},
 		collectorTags,
 	)
 
 	sc.collectorSuccessTime = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name:      "collector_last_run_successful_timestamp_seconds",
-			Help:      "Timestamp of the last successful collector run",
-			Namespace: ns,
+			Name: "collector_last_run_successful_timestamp_seconds",
+			Help: "Timestamp of the last successful collector run",
 		},
 		collectorTags,
 	)
@@ -188,16 +178,10 @@ func (sc *SocketCollector) handleMessage(msg []byte) {
 		"upstream_name":   stats.UpstreamName,
 		"upstream_ip":     stats.UpstreamIP,
 		"upstream_status": stats.UpstreamStatus,
-		"namespace":       stats.Namespace,
-		"ingress":         stats.Ingress,
-		"service":         stats.Service,
 	}
 
 	// Create Collector Labels Map
-	collectorLabels := prometheus.Labels{
-		"namespace":     sc.ns,
-		"ingress_class": sc.ingressClass,
-	}
+	collectorLabels := prometheus.Labels{}
 
 	// Emit metrics
 	requestsMetric, err := sc.requests.GetMetricWith(collectorLabels)

@@ -464,9 +464,7 @@ http {
 
                 location / {
                     set $proxy_upstream_name "-";
-                    set $namespace      "";
-                    set $ingress_name   "";
-                    set $service_name   "";
+                    set $location_path  "-";
 
                     proxy_intercept_errors off;
                     

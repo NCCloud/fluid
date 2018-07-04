@@ -26,9 +26,6 @@ function _M.encode_nginx_stats()
         upstreamIP = ngx.var.upstream_addr or "-",
         upstreamResponseTime = tonumber(ngx.var.upstream_response_time) or -1,
         upstreamStatus = ngx.var.upstream_status or "-",
-        namespace = ngx.var.namespace or "-",
-        ingress = ngx.var.ingress_name or "-",
-        service = ngx.var.service_name or "-",
     })
 end
 

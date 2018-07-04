@@ -122,6 +122,7 @@ local function load_ctx()
         end
     end
     if request_uri ~= nil then
+        ngx.var.location_path = request_uri
         if ngx.ctx.location == nil then
             local hit_length = 0
             for k, v in pairs(ngx.ctx.server.locations) do
@@ -228,7 +229,9 @@ function _M.balance(lb_alg)
     load_ctx()
 
     local backend_name = ngx.ctx.location.backend
+    ngx.var.proxy_upstream_name = backend_name
     ngx.log(ngx.INFO, "Context Backend name:" ..    tostring(backend_name))
+
     local backend = backends:get(backend_name)
 
     local host
