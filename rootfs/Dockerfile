@@ -2,9 +2,11 @@ FROM openresty/openresty:1.13.6.2-0-alpine
 
 LABEL maintainer="Valeriano Manassero <https://github.com/valeriano-manassero>"
 
-RUN apk add --no-cache \
-    bash \
-    dumb-init
+RUN apk update \
+    && rm -rf /var/cache/apk/* \
+    && apk add --update --no-cache \
+       bash \
+       dumb-init
 
 COPY . /
 
