@@ -308,14 +308,14 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"etc/nginx/lua/balancer.lua": etcNginxLuaBalancerLua,
-	"etc/nginx/lua/configuration.lua": etcNginxLuaConfigurationLua,
-	"etc/nginx/lua/defer.lua": etcNginxLuaDeferLua,
-	"etc/nginx/lua/monitor.lua": etcNginxLuaMonitorLua,
-	"etc/nginx/lua/util.lua": etcNginxLuaUtilLua,
-	"etc/nginx/mime.types": etcNginxMimeTypes,
-	"etc/nginx/nginx.conf": etcNginxNginxConf,
-	"etc/nginx/template/nginx.tmpl": etcNginxTemplateNginxTmpl,
+	"etc/nginx/lua/balancer.lua":             etcNginxLuaBalancerLua,
+	"etc/nginx/lua/configuration.lua":        etcNginxLuaConfigurationLua,
+	"etc/nginx/lua/defer.lua":                etcNginxLuaDeferLua,
+	"etc/nginx/lua/monitor.lua":              etcNginxLuaMonitorLua,
+	"etc/nginx/lua/util.lua":                 etcNginxLuaUtilLua,
+	"etc/nginx/mime.types":                   etcNginxMimeTypes,
+	"etc/nginx/nginx.conf":                   etcNginxNginxConf,
+	"etc/nginx/template/nginx.tmpl":          etcNginxTemplateNginxTmpl,
 	"ingress-controller/clean-nginx-conf.sh": ingressControllerCleanNginxConfSh,
 }
 
@@ -358,15 +358,16 @@ type bintree struct {
 	Func     func() (*asset, error)
 	Children map[string]*bintree
 }
+
 var _bintree = &bintree{nil, map[string]*bintree{
 	"etc": &bintree{nil, map[string]*bintree{
 		"nginx": &bintree{nil, map[string]*bintree{
 			"lua": &bintree{nil, map[string]*bintree{
-				"balancer.lua": &bintree{etcNginxLuaBalancerLua, map[string]*bintree{}},
+				"balancer.lua":      &bintree{etcNginxLuaBalancerLua, map[string]*bintree{}},
 				"configuration.lua": &bintree{etcNginxLuaConfigurationLua, map[string]*bintree{}},
-				"defer.lua": &bintree{etcNginxLuaDeferLua, map[string]*bintree{}},
-				"monitor.lua": &bintree{etcNginxLuaMonitorLua, map[string]*bintree{}},
-				"util.lua": &bintree{etcNginxLuaUtilLua, map[string]*bintree{}},
+				"defer.lua":         &bintree{etcNginxLuaDeferLua, map[string]*bintree{}},
+				"monitor.lua":       &bintree{etcNginxLuaMonitorLua, map[string]*bintree{}},
+				"util.lua":          &bintree{etcNginxLuaUtilLua, map[string]*bintree{}},
 			}},
 			"mime.types": &bintree{etcNginxMimeTypes, map[string]*bintree{}},
 			"nginx.conf": &bintree{etcNginxNginxConf, map[string]*bintree{}},
@@ -426,4 +427,3 @@ func _filePath(dir, name string) string {
 	cannonicalName := strings.Replace(name, "\\", "/", -1)
 	return filepath.Join(append([]string{dir}, strings.Split(cannonicalName, "/")...)...)
 }
-
