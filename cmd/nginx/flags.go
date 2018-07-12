@@ -131,6 +131,9 @@ func parseFlags() (bool, *controller.Configuration, error) {
 		publishStatusAddress = flags.String("publish-status-address", "",
 			`User customized address to be set in the status of ingress resources. The controller will set the
 		endpoint records on the ingress using this address.`)
+
+		configMakerProcesses = flags.Int32("config-maker-processes", 5,
+			`Define the number of routines working to create the configuration dataset for webserver config`)
 	)
 
 	flag.Set("logtostderr", "true")
@@ -214,6 +217,7 @@ func parseFlags() (bool, *controller.Configuration, error) {
 		SortBackends:             *sortBackends,
 		UseNodeInternalIP:        *useNodeInternalIP,
 		SyncRateLimit:            *syncRateLimit,
+		ConfigMakerProcesses:     *configMakerProcesses,
 		ListenPorts: &ngx_config.ListenPorts{
 			Default:  *defServerPort,
 			Health:   *healthzPort,
