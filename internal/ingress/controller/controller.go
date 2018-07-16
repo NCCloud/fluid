@@ -535,15 +535,19 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 		subMaps = append(subMaps, subMap)
 	}
 
-	serversLock := sync.RWMutex{}
+	type serverList struct {
+		sync.RWMutex
+		servers map[string]*ingress.Server
+	}
+
+	sL := serverList{servers: servers}
 
 	for _, sm := range subMaps {
 		go func() {
 			for _, upstream := range sm {
 				isHTTPSfrom := []*ingress.Server{}
-				serversLock.RLock()
-				defer serversLock.RUnlock()
-				for _, server := range servers {
+				sL.RLock()
+				for _, server := range sL.servers {
 					for _, location := range server.Locations {
 						if upstream.Name == location.Backend {
 							if len(upstream.Endpoints) == 0 {
@@ -581,6 +585,7 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 						}
 					}
 				}
+				sL.RUnlock()
 
 				if len(isHTTPSfrom) > 0 {
 					upstream.SSLPassthrough = true
@@ -588,6 +593,10 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 			}
 		}()
 	}
+
+	subMap = nil
+	subMaps = nil
+	sL = serverList{}
 
 	elapsedTime := time.Since(startTime)
 	glog.Infof("BACKEND RECONFIGURATION: Syncing and matching data time elapsed -> %s", elapsedTime)
