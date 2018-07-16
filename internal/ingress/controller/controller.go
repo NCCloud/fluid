@@ -547,46 +547,47 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 			for _, upstream := range sm {
 				isHTTPSfrom := []*ingress.Server{}
 				sL.RLock()
-				for _, server := range sL.servers {
-					for _, location := range server.Locations {
-						if upstream.Name == location.Backend {
-							if len(upstream.Endpoints) == 0 {
-								glog.V(3).Infof("upstream %v does not have any active endpoints.", upstream.Name)
-								location.Backend = ""
+				func() {
+					defer sL.RUnlock()
+					for _, server := range sL.servers {
+						for _, location := range server.Locations {
+							if upstream.Name == location.Backend {
+								if len(upstream.Endpoints) == 0 {
+									glog.V(3).Infof("upstream %v does not have any active endpoints.", upstream.Name)
+									location.Backend = ""
 
-								// check if the location contains endpoints and a custom default backend
-								if location.DefaultBackend != nil {
-									sp := location.DefaultBackend.Spec.Ports[0]
-									endps := n.getEndpoints(location.DefaultBackend, &sp, apiv1.ProtocolTCP, &healthcheck.Config{})
-									if len(endps) > 0 {
-										glog.V(3).Infof("using custom default backend in server %v location %v (service %v/%v)",
-											server.Hostname, location.Path, location.DefaultBackend.Namespace, location.DefaultBackend.Name)
-										nb := upstream.DeepCopy()
-										name := fmt.Sprintf("custom-default-backend-%v", upstream.Name)
-										nb.Name = name
-										nb.Endpoints = endps
-										aUpstreams = append(aUpstreams, nb)
-										location.Backend = name
+									// check if the location contains endpoints and a custom default backend
+									if location.DefaultBackend != nil {
+										sp := location.DefaultBackend.Spec.Ports[0]
+										endps := n.getEndpoints(location.DefaultBackend, &sp, apiv1.ProtocolTCP, &healthcheck.Config{})
+										if len(endps) > 0 {
+											glog.V(3).Infof("using custom default backend in server %v location %v (service %v/%v)",
+												server.Hostname, location.Path, location.DefaultBackend.Namespace, location.DefaultBackend.Name)
+											nb := upstream.DeepCopy()
+											name := fmt.Sprintf("custom-default-backend-%v", upstream.Name)
+											nb.Name = name
+											nb.Endpoints = endps
+											aUpstreams = append(aUpstreams, nb)
+											location.Backend = name
+										}
 									}
 								}
-							}
 
-							// Configure Backends[].SSLPassthrough
-							if server.SSLPassthrough {
-								if location.Path == rootLocation {
-									if location.Backend == defUpstreamName {
-										glog.Warningf("ignoring ssl passthrough of %v as it doesn't have a default backend (root context)", server.Hostname)
-										continue
+								// Configure Backends[].SSLPassthrough
+								if server.SSLPassthrough {
+									if location.Path == rootLocation {
+										if location.Backend == defUpstreamName {
+											glog.Warningf("ignoring ssl passthrough of %v as it doesn't have a default backend (root context)", server.Hostname)
+											continue
+										}
+
+										isHTTPSfrom = append(isHTTPSfrom, server)
 									}
-
-									isHTTPSfrom = append(isHTTPSfrom, server)
 								}
 							}
 						}
 					}
-				}
-				sL.RUnlock()
-
+				}()
 				if len(isHTTPSfrom) > 0 {
 					upstream.SSLPassthrough = true
 				}
