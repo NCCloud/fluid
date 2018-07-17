@@ -543,10 +543,10 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 	for _, sm := range subMaps {
 		go func() {
 			for _, upstream := range sm {
-				isHTTPSfrom := []*ingress.Server{}
 				sL.RLock()
 				func() {
 					defer sL.RUnlock()
+					isHTTPSfrom := []*ingress.Server{}
 					for _, server := range sL.servers {
 						for _, location := range server.Locations {
 							if upstream.Name == location.Backend {
@@ -585,10 +585,10 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 							}
 						}
 					}
+					if len(isHTTPSfrom) > 0 {
+						upstream.SSLPassthrough = true
+					}
 				}()
-				if len(isHTTPSfrom) > 0 {
-					upstream.SSLPassthrough = true
-				}
 			}
 		}()
 	}
