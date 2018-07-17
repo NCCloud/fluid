@@ -535,69 +535,66 @@ func (n *NGINXController) getBackendServers(ingresses []*extensions.Ingress) ([]
 		subMaps = append(subMaps, subMap)
 	}
 
-	type serverList struct {
-		sync.RWMutex
-		servers map[string]*ingress.Server
-	}
-
-	sL := serverList{servers: servers}
+	var wg sync.WaitGroup
+	lockCheck := sync.RWMutex{}
 
 	for _, sm := range subMaps {
+		wg.Add(1)
 		go func() {
 			for _, upstream := range sm {
-				sL.RLock()
-				func() {
-					defer sL.RUnlock()
-					isHTTPSfrom := []*ingress.Server{}
-					for _, server := range sL.servers {
-						for _, location := range server.Locations {
-							if upstream.Name == location.Backend {
-								if len(upstream.Endpoints) == 0 {
-									glog.V(3).Infof("upstream %v does not have any active endpoints.", upstream.Name)
-									location.Backend = ""
+				lockCheck.RLock()
+				isHTTPSfrom := []*ingress.Server{}
+				for _, server := range servers {
+					for _, location := range server.Locations {
+						if upstream.Name == location.Backend {
+							if len(upstream.Endpoints) == 0 {
+								glog.V(3).Infof("upstream %v does not have any active endpoints.", upstream.Name)
+								location.Backend = ""
 
-									// check if the location contains endpoints and a custom default backend
-									if location.DefaultBackend != nil {
-										sp := location.DefaultBackend.Spec.Ports[0]
-										endps := n.getEndpoints(location.DefaultBackend, &sp, apiv1.ProtocolTCP, &healthcheck.Config{})
-										if len(endps) > 0 {
-											glog.V(3).Infof("using custom default backend in server %v location %v (service %v/%v)",
-												server.Hostname, location.Path, location.DefaultBackend.Namespace, location.DefaultBackend.Name)
-											nb := upstream.DeepCopy()
-											name := fmt.Sprintf("custom-default-backend-%v", upstream.Name)
-											nb.Name = name
-											nb.Endpoints = endps
-											aUpstreams = append(aUpstreams, nb)
-											location.Backend = name
-										}
+								// check if the location contains endpoints and a custom default backend
+								if location.DefaultBackend != nil {
+									sp := location.DefaultBackend.Spec.Ports[0]
+									endps := n.getEndpoints(location.DefaultBackend, &sp, apiv1.ProtocolTCP, &healthcheck.Config{})
+									if len(endps) > 0 {
+										glog.V(3).Infof("using custom default backend in server %v location %v (service %v/%v)",
+											server.Hostname, location.Path, location.DefaultBackend.Namespace, location.DefaultBackend.Name)
+										nb := upstream.DeepCopy()
+										name := fmt.Sprintf("custom-default-backend-%v", upstream.Name)
+										nb.Name = name
+										nb.Endpoints = endps
+										aUpstreams = append(aUpstreams, nb)
+										location.Backend = name
 									}
 								}
+							}
 
-								// Configure Backends[].SSLPassthrough
-								if server.SSLPassthrough {
-									if location.Path == rootLocation {
-										if location.Backend == defUpstreamName {
-											glog.Warningf("ignoring ssl passthrough of %v as it doesn't have a default backend (root context)", server.Hostname)
-											continue
-										}
-
-										isHTTPSfrom = append(isHTTPSfrom, server)
+							// Configure Backends[].SSLPassthrough
+							if server.SSLPassthrough {
+								if location.Path == rootLocation {
+									if location.Backend == defUpstreamName {
+										glog.Warningf("ignoring ssl passthrough of %v as it doesn't have a default backend (root context)", server.Hostname)
+										continue
 									}
+
+									isHTTPSfrom = append(isHTTPSfrom, server)
 								}
 							}
 						}
 					}
-					if len(isHTTPSfrom) > 0 {
-						upstream.SSLPassthrough = true
-					}
-				}()
+				}
+				if len(isHTTPSfrom) > 0 {
+					upstream.SSLPassthrough = true
+				}
+				lockCheck.RUnlock()
 			}
+			wg.Done()
 		}()
 	}
 
+	wg.Wait()
+
 	subMap = nil
 	subMaps = nil
-	sL = serverList{}
 
 	elapsedTime := time.Since(startTime)
 	glog.Infof("BACKEND RECONFIGURATION: Syncing and matching data time elapsed -> %s", elapsedTime)
