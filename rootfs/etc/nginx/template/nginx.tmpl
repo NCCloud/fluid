@@ -519,6 +519,7 @@ http {
 
                     proxy_pass http://upstream_balancer;
                 }
+        {{ template "CUSTOM_ERRORS" $all }}
     }
     ## end server vhosts
 
@@ -657,13 +658,12 @@ stream {
             proxy_set_header       X-Code             {{ $errCode }};
             proxy_set_header       X-Format           $http_accept;
             proxy_set_header       X-Original-URI     $request_uri;
-            proxy_set_header       X-Namespace        $namespace;
             proxy_set_header       X-Ingress-Name     $ingress_name;
             proxy_set_header       X-Service-Name     $service_name;
 
             rewrite                (.*) / break;
 
-            proxy_pass            http://upstream_balancer;
+            proxy_pass            http://upstream-default-backend;
         }
         {{ end }}
 {{ end }}
