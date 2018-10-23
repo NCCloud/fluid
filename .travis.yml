@@ -40,7 +40,7 @@ jobs:
     script: 
     - sudo luarocks install luacheck 
     - make luacheck 
-    - go get github.com/golang/lint/golint 
+    - go get golang.org/x/lint/golint
     - go get -u github.com/jteeuwen/go-bindata/... 
     - make verify-all 
   - stage: Coverage
