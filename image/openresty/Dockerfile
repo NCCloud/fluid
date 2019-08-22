@@ -1,10 +1,10 @@
-FROM alpine:3.7
+FROM alpine:3.9
 
 LABEL maintainer="Valeriano Manassero <https://github.com/valeriano-manassero>"
 
-ARG RESTY_VERSION="1.13.6.1"
-ARG RESTY_OPENSSL_VERSION="1.0.2k"
-ARG RESTY_PCRE_VERSION="8.41"
+ARG RESTY_VERSION="1.15.8.2"
+ARG RESTY_OPENSSL_VERSION="1.1.1c"
+ARG RESTY_PCRE_VERSION="8.43"
 ARG RESTY_J="1"
 ARG RESTY_CONFIG_OPTIONS="\
     --with-file-aio \
